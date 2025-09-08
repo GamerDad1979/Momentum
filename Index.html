@@ -112,6 +112,12 @@
     </style>
 </head>
 <body class="p-4 flex items-center justify-center min-h-screen">
+    <!-- Firebase SDKs -->
+    <script type="module" src="https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js" defer></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js" defer></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js" defer></script>
+
+    <!-- The actual application UI -->
     <div id="app-container" class="bg-white rounded-3xl shadow-xl w-full max-w-md p-6 sm:p-8 flex flex-col items-center">
         <!-- Logo -->
         <div class="mb-4">
@@ -337,45 +343,10 @@
         </div>
     </div>
 
-    <script type="module">
-        try {
-            // Embedded Firebase SDKs
-            // These SDKs are intentionally embedded to avoid external CDN loading issues.
-            
-            // Firebase App
-            const firebase_app_code = `
-                function r(e,t,n){"use strict";var o=t&&t.split("."),a=o&&o[0],i=a&&"firebase"===a,s=i&&"firebase-compat"===o[1];if(i){if(!s){console.error("Firebase SDKs are now distributed as modules. Please use 'import { ... } from \"firebase/app\"' or 'import { ... } from \"@firebase/app\"'.");return null}console.warn("Firebase SDKs are now distributed as modules. The 'firebase-compat' SDK will be removed in a future major release. Please use 'import { ... } from \"firebase/app\"' or 'import { ... } from \"@firebase/app\"'.")}var r=n&&n.split("."),c=r&&r[0],l=c&&"firebase"===c,u=l&&"firebase-compat"===r[1];if(l){if(!u){console.error("Firebase SDKs are now distributed as modules. Please use 'import { ... } from \"firebase/app\"' or 'import { ... } from \"@firebase/app\"'.");return null}console.warn("Firebase SDKs are now distributed as modules. The 'firebase-compat' SDK will be removed in a future major release. Please use 'import { ... } from \"firebase/app\"' or 'import { ... } from \"@firebase/app\"'.")}var p=t&&t.split(".");var f=p&&p[0];var d=f&&"firebase"===f;var h=d&&"firebase-compat"===p[1];if(d){if(!h){console.error("Firebase SDKs are now distributed as modules. Please use 'import { ... } from \"firebase/app\"' or 'import { ... } from \"@firebase/app\"'.");return null}console.warn("Firebase SDKs are now distributed as modules. The 'firebase-compat' SDK will be removed in a future major release. Please use 'import { ... } from \"firebase/app\"' or 'import { ... from \"@firebase/app\"'.")}var g=n&&n.split(".");var m=g&&g[0];var y=m&&"firebase"===m;var v=y&&"firebase-compat"===g[1];if(y){if(!v){console.error("Firebase SDKs are now distributed as modules. Please use 'import { ... } from \"firebase/app\"' or 'import { ... from \"@firebase/app\"'.");return null}console.warn("Firebase SDKs are now distributed as modules. The 'firebase-compat' SDK will be removed in a future major release. Please use 'import { ... } from \"firebase/app\"' or 'import { ... from \"@firebase/app\"'.")}return{initializeApp:e.initializeApp,getAnalytics:e.getAnalytics}}
-            `;
-            
-            // Firebase Auth
-            const firebase_auth_code = `
-                function r(e,t,n){"use strict";var o=t&&t.split("."),a=o&&o[0],i=a&&"firebase"===a,s=i&&"firebase-compat"===o[1];if(i){if(!s){console.error("Firebase SDKs are now distributed as modules. Please use 'import { ... } from \"firebase/auth\"' or 'import { ... } from \"@firebase/auth\"'.");return null}console.warn("Firebase SDKs are now distributed as modules. The 'firebase-compat' SDK will be removed in a future major release. Please use 'import { ... } from \"firebase/auth\"' or 'import { ... } from \"@firebase/auth\"'.")}var r=n&&n.split("."),c=r&&r[0],l=c&&"firebase"===c,u=l&&"firebase-compat"===r[1];if(l){if(!u){console.error("Firebase SDKs are now distributed as modules. Please use 'import { ... } from \"firebase/auth\"' or 'import { ... from \"@firebase/auth\"'.");return null}console.warn("Firebase SDKs are now distributed as modules. The 'firebase-compat' SDK will be removed in a future major release. Please use 'import { ... } from \"firebase/auth\"' or 'import { ... from \"@firebase/auth\"'.")}var p=t&&t.split(".");var f=p&&p[0];var d=f&&"firebase"===f;var h=d&&"firebase-compat"===p[1];if(d){if(!h){console.error("Firebase SDKs are now distributed as modules. Please use 'import { ... } from \"firebase/auth\"' or 'import { ... from \"@firebase/auth\"'.");return null}console.warn("Firebase SDKs are now distributed as modules. The 'firebase-compat' SDK will be removed in a future major release. Please use 'import { ... } from \"firebase/auth\"' or 'import { ... from \"@firebase/auth\"'.")}var g=n&&n.split(".");var m=g&&g[0];var y=m&&"firebase"===m;var v=y&&"firebase-compat"===g[1];if(y){if(!v){console.error("Firebase SDKs are now distributed as modules. Please use 'import { ... } from \"firebase/auth\"' or 'import { ... from \"@firebase/auth\"'.");return null}console.warn("Firebase SDKs are now distributed as modules. The 'firebase-compat' SDK will be removed in a future major release. Please use 'import { ... from \"firebase/auth\"' or 'import { ... from \"@firebase/auth\"'.")}return{getAuth:e.getAuth,signInAnonymously:e.signInAnonymously,onAuthStateChanged:e.onAuthStateChanged}}
-            `;
-            
-            // Firebase Firestore
-            const firebase_firestore_code = `
-                function r(e,t,n){"use strict";var o=t&&t.split("."),a=o&&o[0],i=a&&"firebase"===a,s=i&&"firebase-compat"===o[1];if(i){if(!s){console.error("Firebase SDKs are now distributed as modules. Please use 'import { ... } from \"firebase/firestore\"' or 'import { ... } from \"@firebase/firestore\"'.");return null}console.warn("Firebase SDKs are now distributed as modules. The 'firebase-compat' SDK will be removed in a future major release. Please use 'import { ... } from \"firebase/firestore\"' or 'import { ... from \"@firebase/firestore\"'.")}var r=n&&n.split("."),c=r&&r[0],l=c&&"firebase"===c,u=l&&"firebase-compat"===r[1];if(l){if(!u){console.error("Firebase SDKs are now distributed as modules. Please use 'import { ... } from \"firebase/firestore\"' or 'import { ... from \"@firebase/firestore\"'.");return null}console.warn("Firebase SDKs are now distributed as modules. The 'firebase-compat' SDK will be removed in a future major release. Please use 'import { ... } from \"firebase/firestore\"' or 'import { ... from \"@firebase/firestore\"'.")}var p=t&&t.split(".");var f=p&&p[0];var d=f&&"firebase"===f;var h=d&&"firebase-compat"===p[1];if(d){if(!h){console.error("Firebase SDKs are now distributed as modules. Please use 'import { ... } from \"firebase/firestore\"' or 'import { ... from \"@firebase/firestore\"'.");return null}console.warn("Firebase SDKs are now distributed as modules. The 'firebase-compat' SDK will be removed in a future major release. Please use 'import { ... } from \"firebase/firestore\"' or 'import { ... from \"@firebase/firestore\"'.")}var g=n&&n.split(".");var m=g&&g[0];var y=m&&"firebase"===m;var v=y&&"firebase-compat"===g[1];if(y){if(!v){console.error("Firebase SDKs are now distributed as modules. Please use 'import { ... } from \"firebase/firestore\"' or 'import { ... from \"@firebase/firestore\"'.");return null}console.warn("Firebase SDKs are now distributed as modules. The 'firebase-compat' SDK will be removed in a future major release. Please use 'import { ... } from \"firebase/firestore\"' or 'import { ... from \"@firebase/firestore\"'.")}return{getFirestore:e.getFirestore,doc:e.doc,onSnapshot:e.onSnapshot,setDoc:e.setDoc,collection:e.collection,query:e.query,where:e.where,addDoc:e.addDoc}}
-            `;
-            
-            // Execute the embedded code in the global scope
-            const appScript = document.createElement('script');
-            appScript.textContent = firebase_app_code;
-            document.head.appendChild(appScript);
-            
-            const authScript = document.createElement('script');
-            authScript.textContent = firebase_auth_code;
-            document.head.appendChild(authScript);
-
-            const firestoreScript = document.createElement('script');
-            firestoreScript.textContent = firebase_firestore_code;
-            document.head.appendChild(firestoreScript);
-
-        } catch (error) {
-            console.error("Firebase code embedding failed:", error);
-            displayCriticalError("Initialization Failed", "A critical error occurred while loading Firebase components.");
-        }
-        
-        console.log("Momentum app script started."); // Diagnostic message
+    <script type="module" defer>
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+        import { getFirestore, doc, onSnapshot, setDoc, collection, query, where, addDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
         // IMPORTANT: Paste your Firebase config here.
         // Get this from your Firebase Project Settings.
@@ -393,9 +364,9 @@
 
         function initApp() {
             try {
-                const app = window.firebase.initializeApp(firebaseConfig);
-                db = window.firebase.firestore().getFirestore(app);
-                auth = window.firebase.auth().getAuth(app);
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
                 console.log("Firebase initialized successfully.");
 
                 onAuthStateChanged(auth, (user) => {

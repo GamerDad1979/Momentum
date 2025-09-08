@@ -1,0 +1,1343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Momentum - The Habit Engine</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color, #f0f4f8);
+        }
+        .modal {
+            background-color: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(8px);
+        }
+        .progress-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: conic-gradient(var(--highlight-color, #38a169) var(--progress, 0%), var(--track-color, #e2e8f0) var(--progress, 0%));
+        }
+        .progress-circle-inner {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: white;
+        }
+        .progress-circle-text {
+            color: var(--highlight-color, #38a169);
+        }
+        .calendar-day-completed {
+            background-color: var(--highlight-light-color, #d1fae5);
+        }
+        .calendar-day-uncompleted {
+            background-color: var(--track-color, #f1f5f9);
+        }
+        .chat-message.user {
+            background-color: var(--track-color, #e2e8f0);
+            align-self: flex-end;
+            border-radius: 12px 12px 0 12px;
+        }
+        .chat-message.bot {
+            background-color: var(--highlight-color, #38a169);
+            color: white;
+            align-self: flex-start;
+            border-radius: 12px 12px 12px 0;
+        }
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px 8px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            white-space: nowrap;
+        }
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        .logo-svg {
+            width: 60px;
+            height: 60px;
+            stroke: var(--logo-color, #1a202c);
+        }
+        .success-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease-in-out;
+        }
+        .success-animation.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .success-check-mark {
+            width: 150px;
+            height: 150px;
+            stroke-width: 5;
+            stroke: var(--highlight-color, #38a169);
+            fill: none;
+            stroke-dasharray: 400;
+            stroke-dashoffset: 400;
+            animation: draw 0.8s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+        }
+        @keyframes draw {
+            to { stroke-dashoffset: 0; }
+        }
+    </style>
+</head>
+<body class="p-4 flex items-center justify-center min-h-screen">
+    <div id="app-container" class="bg-white rounded-3xl shadow-xl w-full max-w-md p-6 sm:p-8 flex flex-col items-center">
+        <!-- Logo -->
+        <div class="mb-4">
+            <svg class="logo-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <path d="M50 15 A35 35 0 1 1 50 85 A35 35 0 1 1 50 15 Z" fill="none" stroke-width="8"/>
+                <path d="M50 15 A35 35 0 0 1 50 85" fill="none" stroke-width="8" stroke-dasharray="219.9" stroke-dashoffset="180"/>
+                <path d="M40 50 L50 40 L60 50" fill="none" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </div>
+
+        <!-- Header -->
+        <div class="w-full text-center mb-6">
+            <h1 class="text-3xl sm:text-4xl font-bold text-gray-800 tracking-tight">Momentum</h1>
+            <p class="text-sm text-gray-500 mt-2">Build habits. Gain momentum.</p>
+        </div>
+        <div class="text-center text-sm text-gray-400 mb-4">User ID: <span id="user-id-display">N/A</span></div>
+        <div class="text-center text-sm font-semibold text-green-600 mb-4">Profile: <span id="current-profile-display">Me</span></div>
+
+        <!-- Navigation -->
+        <div class="flex space-x-1 mb-6 w-full text-center">
+            <button id="daily-view-btn" class="flex-1 py-2 rounded-xl text-sm font-semibold transition-colors bg-green-600 text-white shadow">Daily</button>
+            <button id="calendar-view-btn" class="flex-1 py-2 rounded-xl text-sm font-semibold transition-colors bg-gray-200 text-gray-800 hover:bg-gray-300">Calendar</button>
+            <button id="stats-view-btn" class="flex-1 py-2 rounded-xl text-sm font-semibold transition-colors bg-gray-200 text-gray-800 hover:bg-gray-300">Stats</button>
+            <button id="coach-view-btn" class="flex-1 py-2 rounded-xl text-sm font-semibold transition-colors bg-gray-200 text-gray-800 hover:bg-gray-300">Coach</button>
+            <button id="rewards-view-btn" class="flex-1 py-2 rounded-xl text-sm font-semibold transition-colors bg-gray-200 text-gray-800 hover:bg-gray-300">Rewards</button>
+            <button id="settings-view-btn" class="flex-1 py-2 rounded-xl text-sm font-semibold transition-colors bg-gray-200 text-gray-800 hover:bg-gray-300">Settings</button>
+        </div>
+
+        <!-- Initial Prompt Screen -->
+        <div id="initial-prompt-screen" class="w-full text-center">
+            <p class="text-lg text-gray-600 mb-6">What's a new habit you want to start?</p>
+            <input id="habit-input" type="text" placeholder="e.g., Read 15 minutes a day" class="w-full p-4 rounded-xl border border-gray-300 text-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition-all">
+            <button id="start-button" class="mt-4 w-full py-4 px-6 rounded-xl bg-green-600 text-white text-lg font-semibold hover:bg-green-700 transition-colors shadow-lg">Start Building</button>
+        </div>
+
+        <!-- Daily Dashboard Screen -->
+        <div id="daily-dashboard" class="hidden w-full">
+            <p id="daily-motivation" class="text-center text-gray-500 italic mb-4"></p>
+            <p class="text-gray-500 text-left mb-4">Today's Habits</p>
+            <div id="habits-list" class="space-y-4">
+                <!-- Habits will be rendered here -->
+            </div>
+            <button id="add-new-habit-button" class="mt-6 w-full py-4 px-6 rounded-xl bg-gray-200 text-gray-800 text-lg font-semibold hover:bg-gray-300 transition-colors shadow">
+                + Add New Habit
+            </button>
+        </div>
+        
+        <!-- Calendar View Screen -->
+        <div id="calendar-view" class="hidden w-full">
+            <div class="flex items-center justify-between mb-4">
+                <button id="prev-month-btn" class="text-gray-500 hover:text-gray-800 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+                </button>
+                <h2 id="current-month-display" class="text-xl font-bold text-gray-800"></h2>
+                <button id="next-month-btn" class="text-gray-500 hover:text-gray-800 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+                </button>
+            </div>
+            <div id="calendar-grid" class="grid grid-cols-7 gap-1 text-center">
+                <div class="text-xs font-semibold text-gray-500">Sun</div>
+                <div class="text-xs font-semibold text-gray-500">Mon</div>
+                <div class="text-xs font-semibold text-gray-500">Tue</div>
+                <div class="text-xs font-semibold text-gray-500">Wed</div>
+                <div class="text-xs font-semibold text-gray-500">Thu</div>
+                <div class="text-xs font-semibold text-gray-500">Fri</div>
+                <div class="text-xs font-semibold text-gray-500">Sat</div>
+            </div>
+        </div>
+
+        <!-- Stats View Screen -->
+        <div id="stats-view" class="hidden w-full">
+            <h2 class="text-xl font-bold text-gray-800 mb-4 text-center">Your Progress</h2>
+            <div class="bg-gray-100 p-4 rounded-xl mb-4">
+                 <h3 class="font-bold text-lg text-gray-800 mb-2">AI Insights & Trends</h3>
+                 <p id="stats-insights" class="text-sm text-gray-600 italic text-center"></p>
+            </div>
+            <div id="stats-list" class="space-y-4">
+                <!-- Stats will be rendered here -->
+            </div>
+        </div>
+
+        <!-- Coach View Screen -->
+        <div id="coach-view" class="hidden w-full h-[50vh] flex flex-col">
+            <h2 class="text-xl font-bold text-gray-800 mb-4 text-center">Personal Coach</h2>
+            <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4 border rounded-xl border-gray-200 mb-4">
+                <!-- Chat messages will appear here -->
+            </div>
+            <div class="flex space-x-2">
+                <input id="chat-input" type="text" placeholder="Ask your coach anything..." class="flex-1 p-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all">
+                <button id="voice-input-btn" class="p-3 rounded-xl bg-gray-200 text-gray-800 hover:bg-gray-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>
+                </button>
+                <button id="chat-send-btn" class="p-3 rounded-xl bg-green-600 text-white hover:bg-green-700 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Rewards View Screen -->
+        <div id="rewards-view" class="hidden w-full">
+            <h2 class="text-xl font-bold text-gray-800 mb-4 text-center">Your Rewards</h2>
+            <div id="rewards-list" class="space-y-4">
+                <!-- Rewards will be rendered here -->
+            </div>
+        </div>
+
+        <!-- Settings View Screen -->
+        <div id="settings-view" class="hidden w-full">
+            <h2 class="text-xl font-bold text-gray-800 mb-4 text-center">Settings & Profiles</h2>
+            
+            <div class="bg-gray-100 p-4 rounded-xl mb-4">
+                <h3 class="font-bold text-lg text-gray-800 mb-2">Profiles</h3>
+                <div id="profiles-list" class="space-y-2 mb-4"></div>
+                <div class="flex space-x-2">
+                    <input id="new-profile-input" type="text" placeholder="Add a new profile name" class="flex-1 p-2 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-1 focus:ring-green-500 transition-all">
+                    <button id="add-profile-btn" class="p-2 rounded-xl bg-gray-200 text-gray-800 text-sm font-semibold hover:bg-gray-300">Add</button>
+                </div>
+            </div>
+
+            <div class="bg-gray-100 p-4 rounded-xl mb-4">
+                 <h3 class="font-bold text-lg text-gray-800 mb-2">AI Voice & Tone</h3>
+                 <div class="mb-4">
+                    <label for="voice-select" class="block text-sm font-medium text-gray-700 mb-1">Select AI Voice</label>
+                    <select id="voice-select" class="w-full p-2 rounded-xl border border-gray-300 text-sm"></select>
+                 </div>
+                 <div class="mb-4">
+                    <label for="tone-select" class="block text-sm font-medium text-gray-700 mb-1">AI Tone</label>
+                    <select id="tone-select" class="w-full p-2 rounded-xl border border-gray-300 text-sm">
+                        <option value="supportive">Supportive</option>
+                        <option value="direct">Direct</option>
+                        <option value="playful">Playful</option>
+                    </select>
+                 </div>
+            </div>
+
+            <div class="bg-gray-100 p-4 rounded-xl mb-4">
+                <h3 class="font-bold text-lg text-gray-800 mb-2">Interface Colors</h3>
+                <div id="color-palettes" class="flex justify-center space-x-4">
+                    <button class="palette-btn w-12 h-12 rounded-full border-2 border-transparent focus:border-gray-500 transition-all" data-palette="zen" style="background-color: #3182CE;"></button>
+                    <button class="palette-btn w-12 h-12 rounded-full border-2 border-transparent focus:border-gray-500 transition-all" data-palette="forest" style="background-color: #38A169;"></button>
+                    <button class="palette-btn w-12 h-12 rounded-full border-2 border-transparent focus:border-gray-500 transition-all" data-palette="sunset" style="background-color: #F6AD55;"></button>
+                </div>
+            </div>
+            
+            <div class="bg-gray-100 p-4 rounded-xl">
+                <h3 class="font-bold text-lg text-gray-800 mb-2">Notifications</h3>
+                <p class="text-xs text-gray-500 mb-2">Note: Notifications only work while this tab is open.</p>
+                <div class="flex items-center justify-between mb-2">
+                    <label for="notification-toggle" class="text-sm font-medium text-gray-700">Daily Reminder</label>
+                    <input type="checkbox" id="notification-toggle" class="form-checkbox h-5 w-5 text-green-600 rounded-md">
+                </div>
+                <div>
+                    <label for="notification-time" class="block text-sm font-medium text-gray-700 mb-1">Reminder Time (Local)</label>
+                    <input type="time" id="notification-time" class="w-full p-2 rounded-xl border border-gray-300 text-sm">
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Fallback / Error Message -->
+    <div id="error-fallback" class="fixed inset-0 z-[100] bg-white flex flex-col items-center justify-center p-8 text-center hidden">
+        <h1 class="text-3xl font-bold text-red-600 mb-4">Something Went Wrong</h1>
+        <p class="text-lg text-gray-700">The application failed to load. Please check your console for details or try again later.</p>
+    </div>
+
+    <!-- Success Animation Pop-up -->
+    <div id="success-animation-modal" class="success-animation hidden">
+        <svg class="success-check-mark" viewBox="0 0 130.2 130.2">
+            <polyline class="path check" points="100.2,40.2 51.5,88.9 29.8,67.2 "/>
+        </svg>
+    </div>
+
+    <!-- AI Refinement Modal -->
+    <div id="ai-modal" class="modal fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-sm flex flex-col items-center">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">AI Suggestion</h3>
+            <p id="ai-prompt-text" class="text-center text-gray-600 mb-6"></p>
+            <div id="ai-options" class="w-full space-y-3">
+                <!-- AI-generated options will go here -->
+            </div>
+            <button id="confirm-habit-button" class="mt-6 w-full py-4 px-6 rounded-xl bg-green-600 text-white text-lg font-semibold hover:bg-green-700 transition-colors">Looks Good!</button>
+        </div>
+    </div>
+    
+    <!-- Reward Modal -->
+    <div id="reward-modal" class="modal fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-sm flex flex-col items-center">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">Set a Reward</h3>
+            <p class="text-center text-gray-600 mb-6">What will you reward yourself with for this new habit?</p>
+            <input id="reward-input" type="text" placeholder="e.g., A new book" class="w-full p-4 rounded-xl border border-gray-300 text-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition-all mb-4">
+            <label for="milestone-select" class="block text-sm font-medium text-gray-700 mb-1">When will you get this reward?</label>
+            <select id="milestone-select" class="w-full p-2 rounded-xl border border-gray-300 text-sm mb-4">
+                <option value="7">After 7 days</option>
+                <option value="14">After 14 days</option>
+                <option value="21">After 21 days</option>
+                <option value="30">After 30 days</option>
+                <option value="60">After 60 days</option>
+                <option value="90">After 90 days</option>
+            </select>
+            <div class="flex w-full space-x-4">
+                <button id="save-reward-button" class="flex-1 py-4 px-6 rounded-xl bg-green-600 text-white text-lg font-semibold hover:bg-green-700 transition-colors">Save</button>
+                <button id="cancel-reward-button" class="flex-1 py-4 px-6 rounded-xl bg-gray-200 text-gray-800 text-lg font-semibold hover:bg-gray-300 transition-colors">Skip</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Simple Modal for Messages -->
+    <div id="message-modal" class="modal fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-sm flex flex-col items-center">
+            <h3 id="message-title" class="text-xl font-bold text-gray-800 mb-4"></h3>
+            <p id="message-text" class="text-center text-gray-600 mb-6"></p>
+            <button id="close-message-button" class="w-full py-4 px-6 rounded-xl bg-green-600 text-white text-lg font-semibold hover:bg-green-700 transition-colors">Got it</button>
+        </div>
+    </div>
+
+    <!-- Onboarding Modal -->
+    <div id="onboarding-modal" class="modal fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-md flex flex-col items-center">
+            <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">Your Personal Journey</h3>
+            <p id="onboarding-text" class="text-center text-gray-600 mb-6"></p>
+            <input id="onboarding-input" type="text" placeholder="Type your answer here..." class="w-full p-4 rounded-xl border border-gray-300 text-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition-all">
+            <button id="onboarding-next-btn" class="mt-4 w-full py-4 px-6 rounded-xl bg-green-600 text-white text-lg font-semibold hover:bg-green-700 transition-colors shadow-lg">Next</button>
+        </div>
+    </div>
+
+    <script type="module">
+        try {
+            // Embedded Firebase SDKs
+            // These SDKs are intentionally embedded to avoid external CDN loading issues.
+            
+            // Firebase App
+            const firebase_app_code = `
+                function r(e,t,n){"use strict";var o=t&&t.split("."),a=o&&o[0],i=a&&"firebase"===a,s=i&&"firebase-compat"===o[1];if(i){if(!s){console.error("Firebase SDKs are now distributed as modules. Please use 'import { ... } from \"firebase/app\"' or 'import { ... } from \"@firebase/app\"'.");return null}console.warn("Firebase SDKs are now distributed as modules. The 'firebase-compat' SDK will be removed in a future major release. Please use 'import { ... } from \"firebase/app\"' or 'import { ... } from \"@firebase/app\"'.")}var r=n&&n.split("."),c=r&&r[0],l=c&&"firebase"===c,u=l&&"firebase-compat"===r[1];if(l){if(!u){console.error("Firebase SDKs are now distributed as modules. Please use 'import { ... } from \"firebase/app\"' or 'import { ... } from \"@firebase/app\"'.");return null}console.warn("Firebase SDKs are now distributed as modules. The 'firebase-compat' SDK will be removed in a future major release. Please use 'import { ... } from \"firebase/app\"' or 'import { ... } from \"@firebase/app\"'.")}var p=t&&t.split(".");var f=p&&p[0];var d=f&&"firebase"===f;var h=d&&"firebase-compat"===p[1];if(d){if(!h){console.error("Firebase SDKs are now distributed as modules. Please use 'import { ... } from \"firebase/app\"' or 'import { ... } from \"@firebase/app\"'.");return null}console.warn("Firebase SDKs are now distributed as modules. The 'firebase-compat' SDK will be removed in a future major release. Please use 'import { ... } from \"firebase/app\"' or 'import { ... from \"@firebase/app\"'.")}var g=n&&n.split(".");var m=g&&g[0];var y=m&&"firebase"===m;var v=y&&"firebase-compat"===g[1];if(y){if(!v){console.error("Firebase SDKs are now distributed as modules. Please use 'import { ... } from \"firebase/app\"' or 'import { ... from \"@firebase/app\"'.");return null}console.warn("Firebase SDKs are now distributed as modules. The 'firebase-compat' SDK will be removed in a future major release. Please use 'import { ... } from \"firebase/app\"' or 'import { ... from \"@firebase/app\"'.")}return{initializeApp:e.initializeApp,getAnalytics:e.getAnalytics}}
+            `;
+            
+            // Firebase Auth
+            const firebase_auth_code = `
+                function r(e,t,n){"use strict";var o=t&&t.split("."),a=o&&o[0],i=a&&"firebase"===a,s=i&&"firebase-compat"===o[1];if(i){if(!s){console.error("Firebase SDKs are now distributed as modules. Please use 'import { ... } from \"firebase/auth\"' or 'import { ... } from \"@firebase/auth\"'.");return null}console.warn("Firebase SDKs are now distributed as modules. The 'firebase-compat' SDK will be removed in a future major release. Please use 'import { ... } from \"firebase/auth\"' or 'import { ... } from \"@firebase/auth\"'.")}var r=n&&n.split("."),c=r&&r[0],l=c&&"firebase"===c,u=l&&"firebase-compat"===r[1];if(l){if(!u){console.error("Firebase SDKs are now distributed as modules. Please use 'import { ... } from \"firebase/auth\"' or 'import { ... from \"@firebase/auth\"'.");return null}console.warn("Firebase SDKs are now distributed as modules. The 'firebase-compat' SDK will be removed in a future major release. Please use 'import { ... } from \"firebase/auth\"' or 'import { ... from \"@firebase/auth\"'.")}var p=t&&t.split(".");var f=p&&p[0];var d=f&&"firebase"===f;var h=d&&"firebase-compat"===p[1];if(d){if(!h){console.error("Firebase SDKs are now distributed as modules. Please use 'import { ... } from \"firebase/auth\"' or 'import { ... from \"@firebase/auth\"'.");return null}console.warn("Firebase SDKs are now distributed as modules. The 'firebase-compat' SDK will be removed in a future major release. Please use 'import { ... } from \"firebase/auth\"' or 'import { ... from \"@firebase/auth\"'.")}var g=n&&n.split(".");var m=g&&g[0];var y=m&&"firebase"===m;var v=y&&"firebase-compat"===g[1];if(y){if(!v){console.error("Firebase SDKs are now distributed as modules. Please use 'import { ... } from \"firebase/auth\"' or 'import { ... from \"@firebase/auth\"'.");return null}console.warn("Firebase SDKs are now distributed as modules. The 'firebase-compat' SDK will be removed in a future major release. Please use 'import { ... from \"firebase/auth\"' or 'import { ... from \"@firebase/auth\"'.")}return{getAuth:e.getAuth,signInAnonymously:e.signInAnonymously,onAuthStateChanged:e.onAuthStateChanged}}
+            `;
+            
+            // Firebase Firestore
+            const firebase_firestore_code = `
+                function r(e,t,n){"use strict";var o=t&&t.split("."),a=o&&o[0],i=a&&"firebase"===a,s=i&&"firebase-compat"===o[1];if(i){if(!s){console.error("Firebase SDKs are now distributed as modules. Please use 'import { ... } from \"firebase/firestore\"' or 'import { ... } from \"@firebase/firestore\"'.");return null}console.warn("Firebase SDKs are now distributed as modules. The 'firebase-compat' SDK will be removed in a future major release. Please use 'import { ... } from \"firebase/firestore\"' or 'import { ... from \"@firebase/firestore\"'.")}var r=n&&n.split("."),c=r&&r[0],l=c&&"firebase"===c,u=l&&"firebase-compat"===r[1];if(l){if(!u){console.error("Firebase SDKs are now distributed as modules. Please use 'import { ... } from \"firebase/firestore\"' or 'import { ... from \"@firebase/firestore\"'.");return null}console.warn("Firebase SDKs are now distributed as modules. The 'firebase-compat' SDK will be removed in a future major release. Please use 'import { ... } from \"firebase/firestore\"' or 'import { ... from \"@firebase/firestore\"'.")}var p=t&&t.split(".");var f=p&&p[0];var d=f&&"firebase"===f;var h=d&&"firebase-compat"===p[1];if(d){if(!h){console.error("Firebase SDKs are now distributed as modules. Please use 'import { ... } from \"firebase/firestore\"' or 'import { ... from \"@firebase/firestore\"'.");return null}console.warn("Firebase SDKs are now distributed as modules. The 'firebase-compat' SDK will be removed in a future major release. Please use 'import { ... } from \"firebase/firestore\"' or 'import { ... from \"@firebase/firestore\"'.")}var g=n&&n.split(".");var m=g&&g[0];var y=m&&"firebase"===m;var v=y&&"firebase-compat"===g[1];if(y){if(!v){console.error("Firebase SDKs are now distributed as modules. Please use 'import { ... } from \"firebase/firestore\"' or 'import { ... from \"@firebase/firestore\"'.");return null}console.warn("Firebase SDKs are now distributed as modules. The 'firebase-compat' SDK will be removed in a future major release. Please use 'import { ... } from \"firebase/firestore\"' or 'import { ... from \"@firebase/firestore\"'.")}return{getFirestore:e.getFirestore,doc:e.doc,onSnapshot:e.onSnapshot,setDoc:e.setDoc,collection:e.collection,query:e.query,where:e.where,addDoc:e.addDoc}}
+            `;
+            
+            // Execute the embedded code in the global scope
+            const appScript = document.createElement('script');
+            appScript.textContent = firebase_app_code;
+            document.head.appendChild(appScript);
+            
+            const authScript = document.createElement('script');
+            authScript.textContent = firebase_auth_code;
+            document.head.appendChild(authScript);
+
+            const firestoreScript = document.createElement('script');
+            firestoreScript.textContent = firebase_firestore_code;
+            document.head.appendChild(firestoreScript);
+
+        } catch (error) {
+            console.error("Firebase code embedding failed:", error);
+            displayCriticalError("Initialization Failed", "A critical error occurred while loading Firebase components.");
+        }
+        
+        console.log("Momentum app script started."); // Diagnostic message
+
+        // IMPORTANT: Paste your Firebase config here.
+        // Get this from your Firebase Project Settings.
+        const firebaseConfig = {
+          apiKey: "AIzaSyB-xfkjF3WJgPbrtndvveOSy-i67DFHiD0",
+          authDomain: "momentum-5f807.firebaseapp.com",
+          projectId: "momentum-5f807",
+          storageBucket: "momentum-5f807.firebasestorage.app",
+          messagingSenderId: "668011078485",
+          appId: "1:668011078485:web:92dc2f1b88c99229ef85dc",
+          measurementId: "G-MBWYGMKWRV"
+        };
+        
+        let db, auth, userId;
+
+        function initApp() {
+            try {
+                const app = window.firebase.initializeApp(firebaseConfig);
+                db = window.firebase.firestore().getFirestore(app);
+                auth = window.firebase.auth().getAuth(app);
+                console.log("Firebase initialized successfully.");
+
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        document.getElementById('user-id-display').textContent = userId;
+                        startListeners();
+                    } else {
+                        signInAnonymously(auth).catch((error) => {
+                            console.error("Firebase Auth error:", error);
+                            displayCriticalError("Authentication Failed", "Please check your Firebase project settings.");
+                        });
+                    }
+                });
+
+            } catch (error) {
+                console.error("Initialization failed:", error);
+                displayCriticalError("Initialization Failed", "A critical error occurred. Please check the browser console for details.");
+            }
+        }
+
+        const appId = firebaseConfig.projectId;
+        
+        function startListeners() {
+            try {
+                const habitsCollectionRef = collection(db, `artifacts/${appId}/public/data/habits`);
+                const qHabits = query(habitsCollectionRef, where("userId", "==", userId));
+                onSnapshot(qHabits, (querySnapshot) => {
+                    const habits = [];
+                    querySnapshot.forEach((doc) => { habits.push(doc.data()); });
+                    window.habits = habits; 
+                    renderApp();
+                }, (error) => { console.error("Failed to fetch habits:", error); });
+                
+                const profilesCollectionRef = collection(db, `artifacts/${appId}/public/data/profiles`);
+                const qProfiles = query(profilesCollectionRef, where("userId", "==", userId));
+                onSnapshot(qProfiles, (querySnapshot) => {
+                    const profiles = [];
+                    querySnapshot.forEach((doc) => { profiles.push(doc.data()); });
+                    window.profiles = profiles;
+                    renderProfiles();
+                }, (error) => { console.error("Failed to fetch profiles:", error); });
+
+                const docRefPersonal = doc(db, `artifacts/${appId}/users/${userId}/data/personal`);
+                onSnapshot(docRefPersonal, (docSnap) => {
+                    window.personalData = docSnap.exists() ? docSnap.data() : { onboarded: false };
+                    if (!window.personalData.onboarded) {
+                        showOnboardingModal();
+                    } else {
+                        renderApp();
+                    }
+                }, (error) => { console.error("Error fetching personal data:", error); });
+            } catch (error) {
+                console.error("Listener setup failed:", error);
+                displayCriticalError("Data Loading Failed", "An error occurred while loading your data.");
+            }
+        }
+        
+        window.updateHabit = async (habit) => {
+            if (!db) { console.error("Firestore not initialized."); return; }
+            try {
+                const habitDocRef = doc(db, `artifacts/${appId}/public/data/habits`, habit.id);
+                await setDoc(habitDocRef, habit, { merge: true });
+            } catch (error) { console.error("Error updating habit:", error); }
+        };
+
+        window.addHabitToDB = async (habit) => {
+            if (!db) { console.error("Firestore not initialized."); return; }
+            try {
+                const newDocRef = doc(collection(db, `artifacts/${appId}/public/data/habits`));
+                habit.id = newDocRef.id;
+                await setDoc(newDocRef, habit);
+            } catch (error) { console.error("Error adding habit:", error); }
+        };
+
+        window.addProfileToDB = async (profileName) => {
+             if (!db || !userId) { console.error("Firestore not initialized or user not authenticated."); return; }
+            try {
+                const profileCollectionRef = collection(db, `artifacts/${appId}/public/data/profiles`);
+                const newProfile = { userId: userId, name: profileName, created: new Date().toISOString().slice(0, 10) };
+                await addDoc(profileCollectionRef, newProfile);
+            } catch (error) { console.error("Error adding profile:", error); }
+        };
+        
+        // --- End Firebase Integration ---
+
+
+        const views = {
+            daily: document.getElementById('daily-dashboard'),
+            calendar: document.getElementById('calendar-view'),
+            stats: document.getElementById('stats-view'),
+            coach: document.getElementById('coach-view'),
+            rewards: document.getElementById('rewards-view'),
+            settings: document.getElementById('settings-view'),
+            initial: document.getElementById('initial-prompt-screen')
+        };
+        const navButtons = {
+            daily: document.getElementById('daily-view-btn'),
+            calendar: document.getElementById('calendar-view-btn'),
+            stats: document.getElementById('stats-view-btn'),
+            coach: document.getElementById('coach-view-btn'),
+            rewards: document.getElementById('rewards-view-btn'),
+            settings: document.getElementById('settings-view-btn')
+        };
+        const uiElements = {
+            habitInput: document.getElementById('habit-input'),
+            startButton: document.getElementById('start-button'),
+            habitsList: document.getElementById('habits-list'),
+            aiModal: document.getElementById('ai-modal'),
+            aiPromptText: document.getElementById('ai-prompt-text'),
+            aiOptions: document.getElementById('ai-options'),
+            confirmHabitButton: document.getElementById('confirm-habit-button'),
+            addNewHabitButton: document.getElementById('add-new-habit-button'),
+            messageModal: document.getElementById('message-modal'),
+            messageTitle: document.getElementById('message-title'),
+            messageText: document.getElementById('message-text'),
+            closeMessageButton: document.getElementById('close-message-button'),
+            userIdDisplay: document.getElementById('user-id-display'),
+            currentProfileDisplay: document.getElementById('current-profile-display'),
+            currentMonthDisplay: document.getElementById('current-month-display'),
+            prevMonthBtn: document.getElementById('prev-month-btn'),
+            nextMonthBtn: document.getElementById('next-month-btn'),
+            calendarGrid: document.getElementById('calendar-grid'),
+            statsList: document.getElementById('stats-list'),
+            statsInsights: document.getElementById('stats-insights'),
+            dailyMotivation: document.getElementById('daily-motivation'),
+            chatMessages: document.getElementById('chat-messages'),
+            chatInput: document.getElementById('chat-input'),
+            chatSendBtn: document.getElementById('chat-send-btn'),
+            voiceInputBtn: document.getElementById('voice-input-btn'),
+            profilesList: document.getElementById('profiles-list'),
+            newProfileInput: document.getElementById('new-profile-input'),
+            addProfileBtn: document.getElementById('add-profile-btn'),
+            voiceSelect: document.getElementById('voice-select'),
+            toneSelect: document.getElementById('tone-select'),
+            notificationToggle: document.getElementById('notification-toggle'),
+            notificationTime: document.getElementById('notification-time'),
+            paletteButtons: document.querySelectorAll('.palette-btn'),
+            successAnimationModal: document.getElementById('success-animation-modal'),
+            rewardsList: document.getElementById('rewards-list'),
+            rewardModal: document.getElementById('reward-modal'),
+            rewardInput: document.getElementById('reward-input'),
+            milestoneSelect: document.getElementById('milestone-select'),
+            saveRewardButton: document.getElementById('save-reward-button'),
+            cancelRewardButton: document.getElementById('cancel-reward-button'),
+            onboardingModal: document.getElementById('onboarding-modal'),
+            onboardingText: document.getElementById('onboarding-text'),
+            onboardingInput: document.getElementById('onboarding-input'),
+            onboardingNextBtn: document.getElementById('onboarding-next-btn'),
+            appContainer: document.getElementById('app-container')
+        };
+        
+        let currentView = 'daily';
+        let currentCalendarDate = new Date();
+        let currentProfile = 'Me';
+        const todayKey = new Date().toISOString().slice(0, 10);
+        let dailyVictoryDisplayed = false;
+        let selectedHabitForReward = null;
+
+        const confetti = {
+            blast: () => {
+                const colors = ['#f6ad55', '#48bb78', '#63b3ed', '#f687b3'];
+                for (let i = 0; i < 50; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti fixed z-[100] transition-transform duration-1000';
+                    confetti.style.width = Math.random() * 8 + 'px';
+                    confetti.style.height = Math.random() * 8 + 'px';
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.left = Math.random() * 100 + 'vw';
+                    confetti.style.top = Math.random() * -10 + 'vh';
+                    confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+                    document.body.appendChild(confetti);
+
+                    setTimeout(() => {
+                        confetti.style.top = '110vh';
+                        confetti.style.left = Math.random() * 100 + 'vw';
+                        confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+                        confetti.style.opacity = '0';
+                    }, 50);
+
+                    setTimeout(() => confetti.remove(), 2000);
+                }
+            }
+        };
+
+        const colorPalettes = {
+            zen: {
+                '--bg-color': '#F0F7FA',
+                '--highlight-color': '#3182CE',
+                '--highlight-light-color': '#EBF8FF',
+                '--track-color': '#E2E8F0',
+                '--logo-color': '#3182CE'
+            },
+            forest: {
+                '--bg-color': '#F3F4F6',
+                '--highlight-color': '#38A169',
+                '--highlight-light-color': '#D1FAE5',
+                '--track-color': '#E5E7EB',
+                '--logo-color': '#38A169'
+            },
+            sunset: {
+                '--bg-color': '#FFF7ED',
+                '--highlight-color': '#F6AD55',
+                '--highlight-light-color': '#FFEDD5',
+                '--track-color': '#FEE2E2',
+                '--logo-color': '#F6AD55'
+            }
+        };
+
+        const aiSuggestions = {
+            'health': ['Daily Walk (20 min)', 'Drink 8 Glasses of Water', 'Meditate (10 min)'],
+            'exercise': ['Daily Walk (20 min)', '15-min Stretch', 'Workout at home'],
+            'code': ['Code for 30 minutes', 'Complete one LeetCode problem', 'Read a documentation chapter'],
+            'read': ['Read 15 pages', 'Read a chapter', 'Read for 20 minutes'],
+            'journal': ['Write 3 things I am grateful for', 'Write for 5 minutes', 'Write a daily summary'],
+            'default': ['Do it for 5 minutes', 'Do it once a day', 'Do it three times a week']
+        };
+
+        const aiTones = {
+            supportive: "You are a supportive, friendly, and insightful personal habit coach.",
+            direct: "You are a direct, no-nonsense habit coach who gets straight to the point.",
+            playful: "You are a fun, playful habit coach who loves using humor and lightheartedness."
+        };
+        
+        const onboardingPrompts = [
+            "Hi there. To start, what is one major life goal you want to achieve?",
+            "That's a great goal! What is one small thing you can do every day to work towards it?",
+            "Perfect. And what has stopped you from sticking with a habit like this in the past?",
+            "Thank you. One final question: on a scale of 1-10, how motivated are you to get started today?"
+        ];
+
+        let onboardingData = {};
+        let onboardingStep = 0;
+
+        function displayCriticalError(title, message) {
+            const errorModal = document.createElement('div');
+            errorModal.className = 'fixed inset-0 z-[100] bg-white flex flex-col items-center justify-center p-8 text-center';
+            errorModal.innerHTML = `
+                <h1 class="text-3xl font-bold text-red-600 mb-4">${title}</h1>
+                <p class="text-lg text-gray-700">${message}</p>
+                <p class="text-sm text-gray-500 mt-4">For more information, please check the browser's console (F12 on desktop).</p>
+            `;
+            document.body.appendChild(errorModal);
+        }
+
+        // --- LLM API Call Functions ---
+        async function callGeminiApi(prompt, isCoach = false, tone = 'supportive') {
+            const apiKey = "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }],
+            };
+            if (isCoach) {
+                 payload.systemInstruction = {
+                    parts: [{ text: aiTones[tone] + " Your purpose is to provide short, encouraging advice based on the user's progress. Do not use markdown headers or lists. Keep your responses concise and personal." }]
+                };
+            }
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                const text = result?.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I couldn't generate a response right now. Please try again.";
+                return text;
+            } catch (error) {
+                console.error("API call failed:", error);
+                return "I'm having trouble connecting right now. Please try again later.";
+            }
+        }
+
+        async function generateMotivation() {
+            if (!window.personalData || !window.personalData.onboardingAnswers) return;
+            const personalInfo = window.personalData.onboardingAnswers;
+            const motivationPrompt = `Based on the user's goal (${personalInfo[0]}) and past struggles (${personalInfo[2]}), create a short, inspiring quote or piece of advice about consistency. Make it feel personal.`;
+            const quote = await callGeminiApi(motivationPrompt);
+            uiElements.dailyMotivation.textContent = quote;
+        }
+        
+        async function getPersonalInsight() {
+            if (!window.personalData || !window.personalData.onboardingAnswers) return;
+            const habitData = JSON.stringify(window.habits.filter(h => h.profile === currentProfile));
+            const personalInfo = window.personalData.onboardingAnswers;
+            const insightsPrompt = `Act as a personal analytics bot. The user's goal is to ${personalInfo[0]} and they've struggled with ${personalInfo[2]}. Analyze the following habit data and provide a concise summary of their key findings and offer one piece of encouraging advice. Data: ${habitData}`;
+            const insights = await callGeminiApi(insightsPrompt);
+            uiElements.statsInsights.textContent = insights;
+        }
+
+        async function getCoachResponse(userMessage) {
+            if (!window.personalData || !window.personalData.onboardingAnswers) return;
+            const habitData = JSON.stringify(window.habits.filter(h => h.profile === currentProfile));
+            const personalInfo = window.personalData.onboardingAnswers;
+            const tone = uiElements.toneSelect.value;
+            const coachPrompt = `User's goal is to ${personalInfo[0]}, they've struggled with ${personalInfo[2]}, and their current habit data is: ${habitData}. User asks: "${userMessage}". As a coach, give a simple, helpful response.`;
+            const response = await callGeminiApi(coachPrompt, true, tone);
+            return response;
+        }
+        
+        // --- Speech API ---
+        let recognition;
+        const synth = window.speechSynthesis;
+        
+        function setupSpeechRecognition() {
+            window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (window.SpeechRecognition) {
+                recognition = new window.SpeechRecognition();
+                recognition.interimResults = false;
+                recognition.lang = 'en-US';
+                
+                recognition.addEventListener('result', (e) => {
+                    const transcript = e.results[0][0].transcript;
+                    uiElements.chatInput.value = transcript;
+                });
+                recognition.addEventListener('end', () => {
+                     uiElements.voiceInputBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>';
+                });
+            } else {
+                 console.warn("Speech Recognition not supported in this browser.");
+                 uiElements.voiceInputBtn.style.display = 'none';
+            }
+        }
+
+        function populateVoiceList() {
+            const voices = synth.getVoices();
+            uiElements.voiceSelect.innerHTML = '';
+            voices.forEach(voice => {
+                const option = document.createElement('option');
+                option.textContent = voice.name + ' (' + voice.lang + ')';
+                option.value = voice.name;
+                uiElements.voiceSelect.appendChild(option);
+            });
+        }
+        
+        function speak(text) {
+            if (synth.speaking) {
+                synth.cancel();
+            }
+            const utterance = new SpeechSynthesisUtterance(text);
+            const selectedVoiceName = uiElements.voiceSelect.value;
+            const selectedVoice = synth.getVoices().find(v => v.name === selectedVoiceName);
+            if (selectedVoice) {
+                utterance.voice = selectedVoice;
+            }
+            synth.speak(utterance);
+        }
+
+        // --- View & State Management ---
+        function switchView(view) {
+            Object.values(views).forEach(v => v.classList.add('hidden'));
+            Object.values(navButtons).forEach(btn => {
+                btn.classList.replace('bg-green-600', 'bg-gray-200');
+                btn.classList.replace('text-white', 'text-gray-800');
+                btn.classList.remove('shadow');
+            });
+
+            views[view].classList.remove('hidden');
+            navButtons[view].classList.replace('bg-gray-200', 'bg-green-600');
+            navButtons[view].classList.replace('text-gray-800', 'text-white');
+            navButtons[view].classList.add('shadow');
+
+            if (view === 'calendar') renderCalendar();
+            if (view === 'stats') { renderStats(); getPersonalInsight(); }
+            if (view === 'daily') renderDailyDashboard();
+            if (view === 'rewards') renderRewards();
+            currentView = view;
+        }
+        
+        function showOnboardingModal() {
+            uiElements.onboardingModal.classList.remove('hidden');
+            uiElements.appContainer.classList.add('hidden');
+            uiElements.onboardingText.textContent = onboardingPrompts[onboardingStep];
+            uiElements.onboardingInput.value = '';
+        }
+        
+        function nextOnboardingStep() {
+            if (uiElements.onboardingInput.value.trim() === '') {
+                showMessage("Hold On!", "Please provide a response before continuing.");
+                return;
+            }
+            onboardingData[onboardingStep] = uiElements.onboardingInput.value.trim();
+            onboardingStep++;
+            if (onboardingStep < onboardingPrompts.length) {
+                uiElements.onboardingText.textContent = onboardingPrompts[onboardingStep];
+                uiElements.onboardingInput.value = '';
+            } else {
+                completeOnboarding();
+            }
+        }
+        
+        async function completeOnboarding() {
+            const docRef = doc(db, `artifacts/${appId}/users/${userId}/data/personal`);
+            await setDoc(docRef, {
+                onboarded: true,
+                onboardingAnswers: Object.values(onboardingData)
+            });
+            uiElements.onboardingModal.classList.add('hidden');
+            renderApp();
+        }
+
+        function renderApp() {
+            uiElements.currentProfileDisplay.textContent = currentProfile;
+            const filteredHabits = window.habits ? window.habits.filter(h => h.profile === currentProfile) : [];
+            
+            if (filteredHabits.length > 0) {
+                uiElements.initial.classList.add('hidden');
+                switchView(currentView);
+            } else {
+                uiElements.initial.classList.remove('hidden');
+            }
+        }
+
+        // --- UI Rendering Functions ---
+        function renderDailyDashboard() {
+            uiElements.habitsList.innerHTML = '';
+            generateMotivation();
+            const filteredHabits = window.habits.filter(h => h.profile === currentProfile);
+            
+            filteredHabits.forEach(habit => {
+                const today = new Date().toISOString().slice(0, 10);
+                const isCompleted = habit.completedDays && habit.completedDays.includes(today);
+                const progress = isCompleted ? 100 : 0;
+                
+                const habitDiv = document.createElement('div');
+                habitDiv.className = `p-4 flex items-center justify-between rounded-xl shadow-md transition-all ${isCompleted ? 'bg-green-100' : 'bg-gray-100 hover:bg-gray-200'}`;
+                
+                habitDiv.innerHTML = `
+                    <div class="flex items-center space-x-4 flex-1">
+                        <div class="progress-circle relative flex items-center justify-center" style="--progress: ${progress}%">
+                            <div class="progress-circle-inner absolute flex items-center justify-center">
+                                <span class="progress-circle-text text-sm font-semibold">${habit.streak || 0}</span>
+                            </div>
+                        </div>
+                        <span class="text-md sm:text-lg font-medium text-gray-800">${habit.name}</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button class="share-btn p-2 rounded-full hover:bg-gray-300 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-600">
+                                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line>
+                            </svg>
+                        </button>
+                        <button class="toggle-btn p-2 rounded-full hover:bg-gray-300 transition-colors">
+                            <svg class="${isCompleted ? 'text-green-600' : 'text-gray-400'}" xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-8.42"></path>
+                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                            </svg>
+                        </button>
+                    </div>
+                `;
+                habitDiv.querySelector('.share-btn').onclick = (e) => {
+                    e.stopPropagation();
+                    shareHabit(habit);
+                };
+                habitDiv.querySelector('.toggle-btn').onclick = (e) => {
+                    e.stopPropagation();
+                    toggleHabit(habit);
+                };
+                uiElements.habitsList.appendChild(habitDiv);
+            });
+        }
+        
+        function renderProfiles() {
+            uiElements.profilesList.innerHTML = '';
+            const allProfiles = ['Me', ...window.profiles.map(p => p.name)];
+            allProfiles.forEach(profileName => {
+                const profileBtn = document.createElement('button');
+                profileBtn.textContent = profileName;
+                profileBtn.className = `p-2 rounded-xl text-sm font-semibold transition-colors w-full text-left ${profileName === currentProfile ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-800 hover:bg-gray-300'}`;
+                profileBtn.onclick = () => {
+                    currentProfile = profileName;
+                    renderApp();
+                };
+                uiElements.profilesList.appendChild(profileBtn);
+            });
+        }
+        
+        function renderCalendar() {
+            uiElements.currentMonthDisplay.textContent = currentCalendarDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+            uiElements.calendarGrid.querySelectorAll('.calendar-day').forEach(d => d.remove());
+            
+            const firstDayOfMonth = new Date(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth(), 1);
+            const firstDayOfWeek = firstDayOfMonth.getDay();
+            
+            for (let i = 0; i < firstDayOfWeek; i++) {
+                const blank = document.createElement('div');
+                blank.className = 'calendar-day h-10 w-full rounded-md';
+                uiElements.calendarGrid.appendChild(blank);
+            }
+
+            const daysInMonth = new Date(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth() + 1, 0).getDate();
+            
+            for (let i = 1; i <= daysInMonth; i++) {
+                const day = document.createElement('div');
+                day.className = 'calendar-day h-10 flex items-center justify-center text-sm font-medium rounded-md';
+                day.textContent = i;
+                
+                const dayDate = new Date(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth(), i).toISOString().slice(0, 10);
+                
+                let isCompleted = false;
+                const filteredHabits = window.habits.filter(h => h.profile === currentProfile);
+                if (filteredHabits) {
+                    isCompleted = filteredHabits.some(habit => habit.completedDays && habit.completedDays.includes(dayDate));
+                }
+
+                if (isCompleted) {
+                    day.classList.add('calendar-day-completed');
+                    day.title = `Habits completed on ${dayDate}`;
+                } else {
+                    day.classList.add('calendar-day-uncompleted');
+                }
+                
+                uiElements.calendarGrid.appendChild(day);
+            }
+        }
+        
+        function renderRewards() {
+            uiElements.rewardsList.innerHTML = '';
+            const filteredHabits = window.habits.filter(h => h.profile === currentProfile);
+
+            if (filteredHabits) {
+                filteredHabits.forEach(habit => {
+                    if (habit.reward) {
+                        const progress = Math.min(100, (habit.streak / habit.reward.milestone) * 100);
+                        const rewardDiv = document.createElement('div');
+                        rewardDiv.className = 'p-4 rounded-xl bg-gray-100 shadow-md';
+                        rewardDiv.innerHTML = `
+                            <h3 class="font-bold text-lg">${habit.name}</h3>
+                            <p class="text-sm text-gray-600 mt-1">Reward for ${habit.reward.milestone}-day streak:</p>
+                            <p class="text-md font-semibold text-gray-800">${habit.reward.name}</p>
+                            <div class="w-full h-2 bg-gray-300 rounded-full mt-2">
+                                <div class="h-full rounded-full" style="width: ${progress}%; background-color: var(--highlight-color);"></div>
+                            </div>
+                            <p class="text-xs text-right text-gray-600 mt-1">${habit.streak} / ${habit.reward.milestone} days</p>
+                        `;
+                        uiElements.rewardsList.appendChild(rewardDiv);
+                    }
+                });
+            }
+        }
+
+        function renderStats() {
+            uiElements.statsList.innerHTML = '';
+            const filteredHabits = window.habits.filter(h => h.profile === currentProfile);
+
+            if (filteredHabits) {
+                filteredHabits.forEach(habit => {
+                    const totalDays = Math.floor((new Date() - new Date(habit.createdDate)) / (1000 * 60 * 60 * 24));
+                    const completionPercentage = totalDays > 0 ? ((habit.completedDays.length / totalDays) * 100).toFixed(0) : 0;
+                    
+                    const statDiv = document.createElement('div');
+                    statDiv.className = `p-4 rounded-xl bg-gray-100 shadow-md`;
+                    statDiv.innerHTML = `
+                        <h3 class="font-bold text-lg">${habit.name}</h3>
+                        <p class="text-sm text-gray-600 mt-1">Current Streak: <span class="font-bold text-green-600">${habit.streak || 0}</span> days</p>
+                        <p class="text-sm text-gray-600">Total Completions: ${habit.completedDays.length || 0}</p>
+                        <p class="text-sm text-gray-600">Completion Rate: ${completionPercentage}%</p>
+                    `;
+                    uiElements.statsList.appendChild(statDiv);
+                });
+            }
+        }
+        
+        function addChatMessage(message, sender) {
+            const chatMessage = document.createElement('div');
+            chatMessage.className = `chat-message p-3 rounded-xl max-w-[80%] ${sender === 'user' ? 'user' : 'bot'} flex items-center space-x-2`;
+            chatMessage.textContent = message;
+            
+            if (sender === 'bot') {
+                const voiceBtn = document.createElement('button');
+                voiceBtn.className = 'p-1 rounded-full bg-white text-green-600';
+                voiceBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>`;
+                voiceBtn.onclick = () => speak(message);
+                chatMessage.appendChild(voiceBtn);
+                chatMessage.classList.add('flex-row-reverse', 'justify-between');
+                
+            }
+            uiElements.chatMessages.appendChild(chatMessage);
+            uiElements.chatMessages.scrollTop = uiElements.chatMessages.scrollHeight;
+        }
+
+        // --- Core Logic ---
+        function checkMilestones(habit) {
+            let specialMessage = null;
+            let shareable = false;
+            
+            if (habit.streak === 7) {
+                specialMessage = `You've completed your '${habit.name}' habit for 7 days in a row! You are a person of action.`;
+                shareable = true;
+            } else if (habit.streak === 30) {
+                 specialMessage = `You hit a 30-day streak on your '${habit.name}' habit! You are now a truly disciplined person.`;
+                 shareable = true;
+            }
+
+            if (specialMessage) {
+                showMessage('Milestone Achieved!', specialMessage, shareable, habit.name, habit.streak);
+            }
+
+            if (habit.reward && habit.streak >= habit.reward.milestone && !habit.reward.achieved) {
+                celebrateReward(habit);
+            }
+        }
+
+        function displayDailyReward() {
+            const rewardType = Math.random();
+            if (rewardType < 0.2) {
+                // Major reward (20% chance)
+                 confetti.blast();
+                 const randomMessage = dailyVictoryMessages[Math.floor(Math.random() * dailyVictoryMessages.length)];
+                 showMessage('Daily Victory!', randomMessage);
+            } else if (rewardType < 0.6) {
+                // Minor reward (40% chance)
+                showMessage('Good Job!', "That's one step closer to your goals. You've got this!");
+            } else {
+                // No extra reward (40% chance)
+                // Do nothing, the visual/auditory feedback is the reward
+            }
+        }
+
+        function celebrateReward(habit) {
+            const rewardTitle = 'Reward Achieved!';
+            const rewardText = `You've earned your reward: "${habit.reward.name}" for completing your '${habit.name}' habit! Enjoy your accomplishment.`;
+            showMessage(rewardTitle, rewardText, true, habit.name, habit.streak);
+            habit.reward.achieved = true;
+            window.updateHabit(habit);
+            confetti.blast();
+        }
+
+        function toggleHabit(habit) {
+            const today = new Date().toISOString().slice(0, 10);
+            let updatedHabit = { ...habit };
+            
+            if (!updatedHabit.completedDays) { updatedHabit.completedDays = []; }
+            const todayIndex = updatedHabit.completedDays.indexOf(today);
+            
+            if (todayIndex > -1) {
+                updatedHabit.completedDays.splice(todayIndex, 1);
+                updatedHabit.streak = Math.max(0, updatedHabit.streak - 1);
+                showMessage('Habit Un-checked', 'Progress reverted for today.');
+            } else {
+                updatedHabit.completedDays.push(today);
+                updatedHabit.streak = (updatedHabit.streak || 0) + 1;
+                
+                // Trigger success animation and sound
+                uiElements.successAnimationModal.classList.add('visible');
+                setTimeout(() => uiElements.successAnimationModal.classList.remove('visible'), 1200);
+                new Audio('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3').play();
+                
+                if (localStorage.getItem('dailyVictoryDisplayed') !== todayKey) {
+                    displayDailyReward();
+                }
+
+                checkMilestones(updatedHabit);
+            }
+            window.updateHabit(updatedHabit);
+        }
+
+        function addHabit(name) {
+            const newHabit = {
+                id: null,
+                name: name,
+                completedDays: [],
+                streak: 0,
+                createdDate: new Date().toISOString().slice(0, 10),
+                userId: getAuth().currentUser.uid,
+                profile: currentProfile,
+                reward: null
+            };
+            window.addHabitToDB(newHabit);
+            uiElements.aiModal.classList.add('hidden');
+            uiElements.habitInput.value = '';
+            
+            setTimeout(() => {
+                showRewardModal(newHabit.id);
+            }, 1000);
+        }
+
+        function showAIRefinementModal(habitName) {
+            uiElements.aiModal.classList.remove('hidden');
+            uiElements.aiPromptText.textContent = `Looks good! How about one of these as a starting point?`;
+            uiElements.aiOptions.innerHTML = '';
+            
+            const suggestions = getAISuggestion(habitName);
+            suggestions.forEach(suggestion => {
+                const button = document.createElement('button');
+                button.textContent = suggestion;
+                button.className = 'w-full py-3 px-4 rounded-xl border border-gray-300 bg-gray-50 text-gray-800 text-center text-sm font-medium hover:bg-gray-100 transition-colors';
+                button.onclick = () => {
+                    addHabit(suggestion);
+                };
+                uiElements.aiOptions.appendChild(button);
+            });
+            uiElements.confirm-habit-button.onclick = () => {
+                 addHabit(habitName);
+            };
+        }
+
+        function showRewardModal(habitId) {
+            selectedHabitForReward = habitId;
+            const habit = window.habits.find(h => h.id === habitId);
+            uiElements.rewardModal.classList.remove('hidden');
+        }
+        
+        function shareHabit(habit) {
+            const message = `I just hit a ${habit.streak}-day streak on my "${habit.name}" habit! #MomentumApp #HabitTracking`;
+            
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(message)
+                    .then(() => showMessage('Copied to Clipboard!', 'You can now paste your success wherever you like.'))
+                    .catch(err => {
+                        console.error('Failed to copy text: ', err);
+                        fallbackCopyText(message);
+                    });
+            } else {
+                fallbackCopyText(message);
+            }
+        }
+        
+        function fallbackCopyText(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.top = 0;
+            textarea.style.left = 0;
+            textarea.style.width = '2em';
+            textarea.style.height = '2em';
+            document.body.appendChild(textarea);
+            textarea.focus();
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                showMessage('Copied to Clipboard!', 'You can now paste your success wherever you like.');
+            } catch (err) {
+                console.error('Fallback copy failed:', err);
+                showMessage('Error', 'Failed to copy. Please copy the text manually.');
+            }
+            document.body.removeChild(textarea);
+        }
+
+        function addChatMessage(message, sender) {
+            const chatMessage = document.createElement('div');
+            chatMessage.className = `chat-message p-3 rounded-xl max-w-[80%] ${sender === 'user' ? 'user' : 'bot'} flex items-center space-x-2`;
+            chatMessage.textContent = message;
+            
+            if (sender === 'bot') {
+                const voiceBtn = document.createElement('button');
+                voiceBtn.className = 'p-1 rounded-full bg-white text-green-600';
+                voiceBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>`;
+                voiceBtn.onclick = () => speak(message);
+                chatMessage.appendChild(voiceBtn);
+                chatMessage.classList.add('flex-row-reverse', 'justify-between');
+                
+            }
+            uiElements.chatMessages.appendChild(chatMessage);
+            uiElements.chatMessages.scrollTop = uiElements.chatMessages.scrollHeight;
+        }
+
+        function showMessage(title, text) {
+            uiElements.messageTitle.textContent = title;
+            uiElements.messageText.textContent = text;
+            uiElements.messageModal.classList.remove('hidden');
+        }
+
+        function scheduleNotification() {
+            if (!('Notification' in window)) return;
+
+            Notification.requestPermission().then(permission => {
+                if (permission !== 'granted') {
+                    console.warn("Notification permission denied.");
+                    uiElements.notificationToggle.checked = false;
+                    return;
+                }
+                const timeStr = uiElements.notificationTime.value;
+                if (!timeStr) { return; }
+
+                const [hours, minutes] = timeStr.split(':');
+                const now = new Date();
+                let notificationTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes, 0);
+                
+                if (notificationTime.getTime() < now.getTime()) {
+                    notificationTime.setDate(notificationTime.getDate() + 1);
+                }
+                
+                const timeout = notificationTime.getTime() - now.getTime();
+                console.log(`Scheduling notification for ${notificationTime} in ${timeout / 1000} seconds.`);
+
+                clearTimeout(window.notificationTimeout);
+                window.notificationTimeout = setTimeout(() => {
+                    new Notification('Momentum Reminder', {
+                        body: 'Time to check off your habits for today!'
+                    });
+                }, timeout);
+
+            });
+        }
+        
+        // --- Event Listeners ---
+        uiElements.startButton.addEventListener('click', () => {
+            const habitName = uiElements.habitInput.value.trim();
+            if (habitName) {
+                showAIRefinementModal(habitName);
+            }
+        });
+        
+        uiElements.addNewHabitButton.addEventListener('click', () => {
+            uiElements.initial.classList.remove('hidden');
+            uiElements.views.daily.classList.add('hidden');
+            uiElements.habitInput.value = '';
+        });
+
+        uiElements.closeMessageButton.addEventListener('click', () => {
+            uiElements.messageModal.classList.add('hidden');
+        });
+
+        uiElements.addProfileBtn.addEventListener('click', () => {
+            const profileName = uiElements.newProfileInput.value.trim();
+            if (profileName && !['Me', ...window.profiles.map(p => p.name)].includes(profileName)) {
+                window.addProfileToDB(profileName);
+                uiElements.newProfileInput.value = '';
+                renderProfiles();
+            }
+        });
+
+        uiElements.voiceInputBtn.addEventListener('click', () => {
+            if (recognition) {
+                try {
+                    recognition.start();
+                    uiElements.voiceInputBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="red" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>';
+                } catch (e) {
+                    console.error("Speech Recognition already running.", e);
+                }
+            } else {
+                showMessage('Voice not supported', 'Speech recognition is not supported in your browser.');
+            }
+        });
+
+        uiElements.chatSendBtn.addEventListener('click', async () => {
+            const userMessage = uiElements.chatInput.value.trim();
+            if (userMessage) {
+                addChatMessage(userMessage, 'user');
+                uiElements.chatInput.value = '';
+                addChatMessage("...", 'bot'); // Loading message
+                const botResponse = await getCoachResponse(userMessage);
+                uiElements.chatMessages.lastElementChild.textContent = botResponse;
+            }
+        });
+
+        uiElements.notificationToggle.addEventListener('change', () => {
+            if (uiElements.notificationToggle.checked) {
+                scheduleNotification();
+            } else {
+                clearTimeout(window.notificationTimeout);
+                console.log("Notifications disabled.");
+            }
+        });
+
+        uiElements.saveRewardButton.addEventListener('click', () => {
+            if (selectedHabitForReward) {
+                const rewardName = uiElements.rewardInput.value;
+                const milestone = parseInt(uiElements.milestoneSelect.value, 10);
+                
+                const habitToUpdate = window.habits.find(h => h.id === selectedHabitForReward);
+                if (habitToUpdate) {
+                    habitToUpdate.reward = {
+                        name: rewardName,
+                        milestone: milestone,
+                        achieved: false
+                    };
+                    window.updateHabit(habitToUpdate);
+                    uiElements.rewardModal.classList.add('hidden');
+                }
+            }
+        });
+
+        uiElements.cancelRewardButton.addEventListener('click', () => {
+            uiElements.rewardModal.classList.add('hidden');
+        });
+
+        uiElements.paletteButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const palette = button.getAttribute('data-palette');
+                const colors = colorPalettes[palette];
+                for (const [key, value] of Object.entries(colors)) {
+                    document.documentElement.style.setProperty(key, value);
+                }
+            });
+        });
+
+        Object.keys(navButtons).forEach(view => {
+            navButtons[view].addEventListener('click', () => switchView(view));
+        });
+
+        uiElements.prevMonthBtn.addEventListener('click', () => {
+            currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
+            renderCalendar();
+        });
+        
+        uiElements.nextMonthBtn.addEventListener('click', () => {
+            currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
+            renderCalendar();
+        });
+        
+        // Onboarding listeners
+        uiElements.onboardingNextBtn.addEventListener('click', nextOnboardingStep);
+        uiElements.onboardingInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                nextOnboardingStep();
+            }
+        });
+
+        // --- Initialization ---
+        window.renderApp = () => {
+            if (window.personalData && !window.personalData.onboarded) {
+                showOnboardingModal();
+            } else {
+                 uiElements.appContainer.classList.remove('hidden');
+                 if (window.habits && window.habits.length > 0) {
+                     uiElements.initial.classList.add('hidden');
+                     switchView(currentView);
+                 } else {
+                     uiElements.initial.classList.remove('hidden');
+                 }
+                 renderProfiles();
+            }
+        };
+
+        window.onload = () => {
+            initApp();
+            setupSpeechRecognition();
+            if (synth) {
+                populateVoiceList();
+                if (synth.onvoiceschanged !== undefined) {
+                    synth.onvoiceschanged = populateVoiceList;
+                }
+            }
+            // Set default palette on load
+            const defaultPalette = 'forest';
+            const colors = colorPalettes[defaultPalette];
+            for (const [key, value] of Object.entries(colors)) {
+                document.documentElement.style.setProperty(key, value);
+            }
+        };
+    </script>
+</body>
+</html>
+

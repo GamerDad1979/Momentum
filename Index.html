@@ -4,8 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Momentum - The Habit Engine</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
         body {
@@ -112,14 +114,7 @@
     </style>
 </head>
 <body class="p-4 flex items-center justify-center min-h-screen">
-    <!-- Firebase SDKs -->
-    <script type="module" src="https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js" defer></script>
-    <script type="module" src="https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js" defer></script>
-    <script type="module" src="https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js" defer></script>
-
-    <!-- The actual application UI -->
     <div id="app-container" class="bg-white rounded-3xl shadow-xl w-full max-w-md p-6 sm:p-8 flex flex-col items-center">
-        <!-- Logo -->
         <div class="mb-4">
             <svg class="logo-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                 <path d="M50 15 A35 35 0 1 1 50 85 A35 35 0 1 1 50 15 Z" fill="none" stroke-width="8"/>
@@ -128,7 +123,6 @@
             </svg>
         </div>
 
-        <!-- Header -->
         <div class="w-full text-center mb-6">
             <h1 class="text-3xl sm:text-4xl font-bold text-gray-800 tracking-tight">Momentum</h1>
             <p class="text-sm text-gray-500 mt-2">Build habits. Gain momentum.</p>
@@ -136,7 +130,6 @@
         <div class="text-center text-sm text-gray-400 mb-4">User ID: <span id="user-id-display">N/A</span></div>
         <div class="text-center text-sm font-semibold text-green-600 mb-4">Profile: <span id="current-profile-display">Me</span></div>
 
-        <!-- Navigation -->
         <div class="flex space-x-1 mb-6 w-full text-center">
             <button id="daily-view-btn" class="flex-1 py-2 rounded-xl text-sm font-semibold transition-colors bg-green-600 text-white shadow">Daily</button>
             <button id="calendar-view-btn" class="flex-1 py-2 rounded-xl text-sm font-semibold transition-colors bg-gray-200 text-gray-800 hover:bg-gray-300">Calendar</button>
@@ -146,26 +139,22 @@
             <button id="settings-view-btn" class="flex-1 py-2 rounded-xl text-sm font-semibold transition-colors bg-gray-200 text-gray-800 hover:bg-gray-300">Settings</button>
         </div>
 
-        <!-- Initial Prompt Screen -->
         <div id="initial-prompt-screen" class="w-full text-center">
             <p class="text-lg text-gray-600 mb-6">What's a new habit you want to start?</p>
             <input id="habit-input" type="text" placeholder="e.g., Read 15 minutes a day" class="w-full p-4 rounded-xl border border-gray-300 text-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition-all">
             <button id="start-button" class="mt-4 w-full py-4 px-6 rounded-xl bg-green-600 text-white text-lg font-semibold hover:bg-green-700 transition-colors shadow-lg">Start Building</button>
         </div>
 
-        <!-- Daily Dashboard Screen -->
         <div id="daily-dashboard" class="hidden w-full">
             <p id="daily-motivation" class="text-center text-gray-500 italic mb-4"></p>
             <p class="text-gray-500 text-left mb-4">Today's Habits</p>
             <div id="habits-list" class="space-y-4">
-                <!-- Habits will be rendered here -->
-            </div>
+                </div>
             <button id="add-new-habit-button" class="mt-6 w-full py-4 px-6 rounded-xl bg-gray-200 text-gray-800 text-lg font-semibold hover:bg-gray-300 transition-colors shadow">
                 + Add New Habit
             </button>
         </div>
         
-        <!-- Calendar View Screen -->
         <div id="calendar-view" class="hidden w-full">
             <div class="flex items-center justify-between mb-4">
                 <button id="prev-month-btn" class="text-gray-500 hover:text-gray-800 transition-colors">
@@ -187,7 +176,6 @@
             </div>
         </div>
 
-        <!-- Stats View Screen -->
         <div id="stats-view" class="hidden w-full">
             <h2 class="text-xl font-bold text-gray-800 mb-4 text-center">Your Progress</h2>
             <div class="bg-gray-100 p-4 rounded-xl mb-4">
@@ -195,16 +183,13 @@
                  <p id="stats-insights" class="text-sm text-gray-600 italic text-center"></p>
             </div>
             <div id="stats-list" class="space-y-4">
-                <!-- Stats will be rendered here -->
-            </div>
+                </div>
         </div>
 
-        <!-- Coach View Screen -->
         <div id="coach-view" class="hidden w-full h-[50vh] flex flex-col">
             <h2 class="text-xl font-bold text-gray-800 mb-4 text-center">Personal Coach</h2>
             <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4 border rounded-xl border-gray-200 mb-4">
-                <!-- Chat messages will appear here -->
-            </div>
+                </div>
             <div class="flex space-x-2">
                 <input id="chat-input" type="text" placeholder="Ask your coach anything..." class="flex-1 p-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all">
                 <button id="voice-input-btn" class="p-3 rounded-xl bg-gray-200 text-gray-800 hover:bg-gray-300">
@@ -216,15 +201,12 @@
             </div>
         </div>
         
-        <!-- Rewards View Screen -->
         <div id="rewards-view" class="hidden w-full">
             <h2 class="text-xl font-bold text-gray-800 mb-4 text-center">Your Rewards</h2>
             <div id="rewards-list" class="space-y-4">
-                <!-- Rewards will be rendered here -->
-            </div>
+                </div>
         </div>
 
-        <!-- Settings View Screen -->
         <div id="settings-view" class="hidden w-full">
             <h2 class="text-xl font-bold text-gray-800 mb-4 text-center">Settings & Profiles</h2>
             
@@ -267,7 +249,7 @@
                 <p class="text-xs text-gray-500 mb-2">Note: Notifications only work while this tab is open.</p>
                 <div class="flex items-center justify-between mb-2">
                     <label for="notification-toggle" class="text-sm font-medium text-gray-700">Daily Reminder</label>
-                    <input type="checkbox" id="notification-toggle" class="form-checkbox h-5 w-5 text-green-600 rounded-md">
+                    <input type="checkbox" id="notification-toggle" class="h-5 w-5 text-green-600 rounded-md border-gray-300 focus:ring-green-500">
                 </div>
                 <div>
                     <label for="notification-time" class="block text-sm font-medium text-gray-700 mb-1">Reminder Time (Local)</label>
@@ -277,32 +259,27 @@
         </div>
     </div>
     
-    <!-- Fallback / Error Message -->
     <div id="error-fallback" class="fixed inset-0 z-[100] bg-white flex flex-col items-center justify-center p-8 text-center hidden">
         <h1 class="text-3xl font-bold text-red-600 mb-4">Something Went Wrong</h1>
         <p class="text-lg text-gray-700">The application failed to load. Please check your console for details or try again later.</p>
     </div>
 
-    <!-- Success Animation Pop-up -->
-    <div id="success-animation-modal" class="success-animation hidden">
+    <div id="success-animation-modal" class="success-animation">
         <svg class="success-check-mark" viewBox="0 0 130.2 130.2">
             <polyline class="path check" points="100.2,40.2 51.5,88.9 29.8,67.2 "/>
         </svg>
     </div>
 
-    <!-- AI Refinement Modal -->
     <div id="ai-modal" class="modal fixed inset-0 z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-sm flex flex-col items-center">
             <h3 class="text-xl font-bold text-gray-800 mb-4">AI Suggestion</h3>
             <p id="ai-prompt-text" class="text-center text-gray-600 mb-6"></p>
             <div id="ai-options" class="w-full space-y-3">
-                <!-- AI-generated options will go here -->
-            </div>
+                </div>
             <button id="confirm-habit-button" class="mt-6 w-full py-4 px-6 rounded-xl bg-green-600 text-white text-lg font-semibold hover:bg-green-700 transition-colors">Looks Good!</button>
         </div>
     </div>
     
-    <!-- Reward Modal -->
     <div id="reward-modal" class="modal fixed inset-0 z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-sm flex flex-col items-center">
             <h3 class="text-xl font-bold text-gray-800 mb-4">Set a Reward</h3>
@@ -324,16 +301,15 @@
         </div>
     </div>
 
-    <!-- Simple Modal for Messages -->
     <div id="message-modal" class="modal fixed inset-0 z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-sm flex flex-col items-center">
             <h3 id="message-title" class="text-xl font-bold text-gray-800 mb-4"></h3>
             <p id="message-text" class="text-center text-gray-600 mb-6"></p>
-            <button id="close-message-button" class="w-full py-4 px-6 rounded-xl bg-green-600 text-white text-lg font-semibold hover:bg-green-700 transition-colors">Got it</button>
+            <div id="message-actions" class="w-full">
+                </div>
         </div>
     </div>
 
-    <!-- Onboarding Modal -->
     <div id="onboarding-modal" class="modal fixed inset-0 z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-md flex flex-col items-center">
             <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">Your Personal Journey</h3>
@@ -343,21 +319,22 @@
         </div>
     </div>
 
-    <script type="module" defer>
+    <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
         import { getFirestore, doc, onSnapshot, setDoc, collection, query, where, addDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
-        // IMPORTANT: Paste your Firebase config here.
-        // Get this from your Firebase Project Settings.
+        // IMPORTANT: Replace with your Firebase project's configuration.
+        // NOTE: While exposing this config is standard for web apps, you MUST secure your data
+        // with Firestore Security Rules (e.g., allow read/write only for authenticated users on their own data).
         const firebaseConfig = {
-          apiKey: "AIzaSyB-xfkjF3WJgPbrtndvveOSy-i67DFHiD0",
-          authDomain: "momentum-5f807.firebaseapp.com",
-          projectId: "momentum-5f807",
-          storageBucket: "momentum-5f807.firebasestorage.app",
-          messagingSenderId: "668011078485",
-          appId: "1:668011078485:web:92dc2f1b88c99229ef85dc",
-          measurementId: "G-MBWYGMKWRV"
+          apiKey: "YOUR_API_KEY", // Replace with your actual key
+          authDomain: "YOUR_AUTH_DOMAIN",
+          projectId: "YOUR_PROJECT_ID",
+          storageBucket: "YOUR_STORAGE_BUCKET",
+          messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+          appId: "YOUR_APP_ID",
+          measurementId: "YOUR_MEASUREMENT_ID"
         };
         
         let db, auth, userId;
@@ -372,12 +349,12 @@
                 onAuthStateChanged(auth, (user) => {
                     if (user) {
                         userId = user.uid;
-                        document.getElementById('user-id-display').textContent = userId;
+                        document.getElementById('user-id-display').textContent = userId.substring(0, 8) + '...';
                         startListeners();
                     } else {
                         signInAnonymously(auth).catch((error) => {
                             console.error("Firebase Auth error:", error);
-                            displayCriticalError("Authentication Failed", "Please check your Firebase project settings.");
+                            displayCriticalError("Authentication Failed", "Please check your Firebase project settings and security rules.");
                         });
                     }
                 });
@@ -388,10 +365,13 @@
             }
         }
 
+        // NOTE: This uses the projectId from your config. This is a valid way to create a unique path.
         const appId = firebaseConfig.projectId;
         
         function startListeners() {
             try {
+                // Global state management - assigning to `window` for simplicity in this single-file app.
+                // In a larger application, consider a more robust state management solution (e.g., a state object or library).
                 const habitsCollectionRef = collection(db, `artifacts/${appId}/public/data/habits`);
                 const qHabits = query(habitsCollectionRef, where("userId", "==", userId));
                 onSnapshot(qHabits, (querySnapshot) => {
@@ -419,7 +399,7 @@
                         renderApp();
                     }
                 }, (error) => { console.error("Error fetching personal data:", error); });
-            } catch (error) {
+            } catch (error)
                 console.error("Listener setup failed:", error);
                 displayCriticalError("Data Loading Failed", "An error occurred while loading your data.");
             }
@@ -439,7 +419,11 @@
                 const newDocRef = doc(collection(db, `artifacts/${appId}/public/data/habits`));
                 habit.id = newDocRef.id;
                 await setDoc(newDocRef, habit);
-            } catch (error) { console.error("Error adding habit:", error); }
+                return habit.id; // Return the new ID
+            } catch (error) { 
+                console.error("Error adding habit:", error);
+                return null;
+            }
         };
 
         window.addProfileToDB = async (profileName) => {
@@ -483,7 +467,7 @@
             messageModal: document.getElementById('message-modal'),
             messageTitle: document.getElementById('message-title'),
             messageText: document.getElementById('message-text'),
-            closeMessageButton: document.getElementById('close-message-button'),
+            messageActions: document.getElementById('message-actions'),
             userIdDisplay: document.getElementById('user-id-display'),
             currentProfileDisplay: document.getElementById('current-profile-display'),
             currentMonthDisplay: document.getElementById('current-month-display'),
@@ -523,57 +507,40 @@
         let currentCalendarDate = new Date();
         let currentProfile = 'Me';
         const todayKey = new Date().toISOString().slice(0, 10);
-        let dailyVictoryDisplayed = false;
         let selectedHabitForReward = null;
 
         const confetti = {
             blast: () => {
                 const colors = ['#f6ad55', '#48bb78', '#63b3ed', '#f687b3'];
                 for (let i = 0; i < 50; i++) {
-                    const confetti = document.createElement('div');
-                    confetti.className = 'confetti fixed z-[100] transition-transform duration-1000';
-                    confetti.style.width = Math.random() * 8 + 'px';
-                    confetti.style.height = Math.random() * 8 + 'px';
-                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-                    confetti.style.left = Math.random() * 100 + 'vw';
-                    confetti.style.top = Math.random() * -10 + 'vh';
-                    confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
-                    document.body.appendChild(confetti);
+                    const confetto = document.createElement('div');
+                    confetto.style.position = 'fixed';
+                    confetto.style.zIndex = '101';
+                    confetto.style.transition = 'transform 1s ease-out, opacity 1s ease-out';
+                    confetto.style.width = Math.random() * 8 + 'px';
+                    confetto.style.height = Math.random() * 8 + 'px';
+                    confetto.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetto.style.left = (Math.random() * window.innerWidth) + 'px';
+                    confetto.style.top = '-10px';
+                    confetto.style.transform = `rotate(${Math.random() * 360}deg)`;
+                    document.body.appendChild(confetto);
 
                     setTimeout(() => {
-                        confetti.style.top = '110vh';
-                        confetti.style.left = Math.random() * 100 + 'vw';
-                        confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
-                        confetti.style.opacity = '0';
+                        const endX = (Math.random() * window.innerWidth);
+                        const endY = window.innerHeight + 20;
+                        confetto.style.transform = `translate(${endX - parseFloat(confetto.style.left)}px, ${endY}px) rotate(${Math.random() * 720}deg)`;
+                        confetto.style.opacity = '0';
                     }, 50);
 
-                    setTimeout(() => confetti.remove(), 2000);
+                    setTimeout(() => confetto.remove(), 1050);
                 }
             }
         };
 
         const colorPalettes = {
-            zen: {
-                '--bg-color': '#F0F7FA',
-                '--highlight-color': '#3182CE',
-                '--highlight-light-color': '#EBF8FF',
-                '--track-color': '#E2E8F0',
-                '--logo-color': '#3182CE'
-            },
-            forest: {
-                '--bg-color': '#F3F4F6',
-                '--highlight-color': '#38A169',
-                '--highlight-light-color': '#D1FAE5',
-                '--track-color': '#E5E7EB',
-                '--logo-color': '#38A169'
-            },
-            sunset: {
-                '--bg-color': '#FFF7ED',
-                '--highlight-color': '#F6AD55',
-                '--highlight-light-color': '#FFEDD5',
-                '--track-color': '#FEE2E2',
-                '--logo-color': '#F6AD55'
-            }
+            zen: {'--bg-color': '#F0F7FA', '--highlight-color': '#3182CE', '--highlight-light-color': '#EBF8FF', '--track-color': '#E2E8F0', '--logo-color': '#3182CE'},
+            forest: {'--bg-color': '#F3F4F6', '--highlight-color': '#38A169', '--highlight-light-color': '#D1FAE5', '--track-color': '#E5E7EB', '--logo-color': '#38A169'},
+            sunset: {'--bg-color': '#FFF7ED', '--highlight-color': '#F6AD55', '--highlight-light-color': '#FFEDD5', '--track-color': '#FEE2E2', '--logo-color': '#F6AD55'}
         };
 
         const aiSuggestions = {
@@ -597,58 +564,48 @@
             "Perfect. And what has stopped you from sticking with a habit like this in the past?",
             "Thank you. One final question: on a scale of 1-10, how motivated are you to get started today?"
         ];
+        
+        const dailyVictoryMessages = [
+            "Amazing work today! You're building incredible momentum.",
+            "You crushed all your habits for today! Celebrate this win.",
+            "Consistency is key, and you've unlocked the door for today. Fantastic!"
+        ];
 
         let onboardingData = {};
         let onboardingStep = 0;
 
         function displayCriticalError(title, message) {
-            const errorModal = document.createElement('div');
-            errorModal.className = 'fixed inset-0 z-[100] bg-white flex flex-col items-center justify-center p-8 text-center';
-            errorModal.innerHTML = `
-                <h1 class="text-3xl font-bold text-red-600 mb-4">${title}</h1>
-                <p class="text-lg text-gray-700">${message}</p>
-                <p class="text-sm text-gray-500 mt-4">For more information, please check the browser's console (F12 on desktop).</p>
-            `;
-            document.body.appendChild(errorModal);
+            const errorModal = document.getElementById('error-fallback');
+            errorModal.querySelector('h1').textContent = title;
+            errorModal.querySelector('p').textContent = message;
+            errorModal.classList.remove('hidden');
         }
 
         // --- LLM API Call Functions ---
+        // CRITICAL SECURITY WARNING: Do NOT expose your API key on the client-side.
+        // This function should be a call to YOUR backend server or a serverless function (like a Firebase Cloud Function)
+        // which then securely calls the Gemini API with your key.
         async function callGeminiApi(prompt, isCoach = false, tone = 'supportive') {
-            const apiKey = "";
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-            const payload = {
-                contents: [{ parts: [{ text: prompt }] }],
-            };
+            console.warn("SECURITY_RISK: Calling a placeholder AI function. In production, this must be a secure call to a backend service that protects your API key.");
+            // This is a placeholder response. Replace this with a secure backend call.
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
             if (isCoach) {
-                 payload.systemInstruction = {
-                    parts: [{ text: aiTones[tone] + " Your purpose is to provide short, encouraging advice based on the user's progress. Do not use markdown headers or lists. Keep your responses concise and personal." }]
-                };
-            }
-            try {
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                const result = await response.json();
-                const text = result?.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I couldn't generate a response right now. Please try again.";
-                return text;
-            } catch (error) {
-                console.error("API call failed:", error);
-                return "I'm having trouble connecting right now. Please try again later.";
+                return `That's a great question! Based on your goal, I'd suggest focusing on consistency. Keep up the great work!`;
+            } else {
+                return `Based on your input, a short, inspiring quote about consistency could be: "Success is the sum of small efforts, repeated day in and day out."`;
             }
         }
 
         async function generateMotivation() {
-            if (!window.personalData || !window.personalData.onboardingAnswers) return;
+            if (!window.personalData?.onboardingAnswers) return;
             const personalInfo = window.personalData.onboardingAnswers;
             const motivationPrompt = `Based on the user's goal (${personalInfo[0]}) and past struggles (${personalInfo[2]}), create a short, inspiring quote or piece of advice about consistency. Make it feel personal.`;
             const quote = await callGeminiApi(motivationPrompt);
-            uiElements.dailyMotivation.textContent = quote;
+            uiElements.dailyMotivation.textContent = `"${quote}"`;
         }
         
         async function getPersonalInsight() {
-            if (!window.personalData || !window.personalData.onboardingAnswers) return;
+            if (!window.personalData?.onboardingAnswers) return;
             const habitData = JSON.stringify(window.habits.filter(h => h.profile === currentProfile));
             const personalInfo = window.personalData.onboardingAnswers;
             const insightsPrompt = `Act as a personal analytics bot. The user's goal is to ${personalInfo[0]} and they've struggled with ${personalInfo[2]}. Analyze the following habit data and provide a concise summary of their key findings and offer one piece of encouraging advice. Data: ${habitData}`;
@@ -657,7 +614,7 @@
         }
 
         async function getCoachResponse(userMessage) {
-            if (!window.personalData || !window.personalData.onboardingAnswers) return;
+            if (!window.personalData?.onboardingAnswers) return;
             const habitData = JSON.stringify(window.habits.filter(h => h.profile === currentProfile));
             const personalInfo = window.personalData.onboardingAnswers;
             const tone = uiElements.toneSelect.value;
@@ -691,17 +648,19 @@
         }
 
         function populateVoiceList() {
+            if (!synth) return;
             const voices = synth.getVoices();
             uiElements.voiceSelect.innerHTML = '';
             voices.forEach(voice => {
                 const option = document.createElement('option');
-                option.textContent = voice.name + ' (' + voice.lang + ')';
+                option.textContent = `${voice.name} (${voice.lang})`;
                 option.value = voice.name;
                 uiElements.voiceSelect.appendChild(option);
             });
         }
         
         function speak(text) {
+            if (!synth) return;
             if (synth.speaking) {
                 synth.cancel();
             }
@@ -752,6 +711,7 @@
             if (onboardingStep < onboardingPrompts.length) {
                 uiElements.onboardingText.textContent = onboardingPrompts[onboardingStep];
                 uiElements.onboardingInput.value = '';
+                uiElements.onboardingInput.focus();
             } else {
                 completeOnboarding();
             }
@@ -768,14 +728,17 @@
         }
 
         function renderApp() {
+            uiElements.appContainer.classList.remove('hidden');
+            uiElements.onboardingModal.classList.add('hidden');
             uiElements.currentProfileDisplay.textContent = currentProfile;
             const filteredHabits = window.habits ? window.habits.filter(h => h.profile === currentProfile) : [];
             
             if (filteredHabits.length > 0) {
-                uiElements.initial.classList.add('hidden');
+                views.initial.classList.add('hidden');
                 switchView(currentView);
             } else {
-                uiElements.initial.classList.remove('hidden');
+                Object.values(views).forEach(v => v.classList.add('hidden'));
+                views.initial.classList.remove('hidden');
             }
         }
 
@@ -830,6 +793,7 @@
         
         function renderProfiles() {
             uiElements.profilesList.innerHTML = '';
+            if (!window.profiles) return;
             const allProfiles = ['Me', ...window.profiles.map(p => p.name)];
             allProfiles.forEach(profileName => {
                 const profileBtn = document.createElement('button');
@@ -867,13 +831,13 @@
                 
                 let isCompleted = false;
                 const filteredHabits = window.habits.filter(h => h.profile === currentProfile);
-                if (filteredHabits) {
-                    isCompleted = filteredHabits.some(habit => habit.completedDays && habit.completedDays.includes(dayDate));
+                if (filteredHabits.length > 0) {
+                    isCompleted = filteredHabits.every(habit => habit.completedDays && habit.completedDays.includes(dayDate));
                 }
 
                 if (isCompleted) {
-                    day.classList.add('calendar-day-completed');
-                    day.title = `Habits completed on ${dayDate}`;
+                    day.classList.add('calendar-day-completed', 'font-bold');
+                    day.title = `All habits completed on ${dayDate}`;
                 } else {
                     day.classList.add('calendar-day-uncompleted');
                 }
@@ -886,7 +850,7 @@
             uiElements.rewardsList.innerHTML = '';
             const filteredHabits = window.habits.filter(h => h.profile === currentProfile);
 
-            if (filteredHabits) {
+            if (filteredHabits.length > 0) {
                 filteredHabits.forEach(habit => {
                     if (habit.reward) {
                         const progress = Math.min(100, (habit.streak / habit.reward.milestone) * 100);
@@ -896,10 +860,10 @@
                             <h3 class="font-bold text-lg">${habit.name}</h3>
                             <p class="text-sm text-gray-600 mt-1">Reward for ${habit.reward.milestone}-day streak:</p>
                             <p class="text-md font-semibold text-gray-800">${habit.reward.name}</p>
-                            <div class="w-full h-2 bg-gray-300 rounded-full mt-2">
-                                <div class="h-full rounded-full" style="width: ${progress}%; background-color: var(--highlight-color);"></div>
+                            <div class="w-full h-2 bg-gray-300 rounded-full mt-2 overflow-hidden">
+                                <div class="h-full rounded-full transition-all duration-500" style="width: ${progress}%; background-color: var(--highlight-color);"></div>
                             </div>
-                            <p class="text-xs text-right text-gray-600 mt-1">${habit.streak} / ${habit.reward.milestone} days</p>
+                            <p class="text-xs text-right text-gray-600 mt-1">${habit.streak || 0} / ${habit.reward.milestone} days</p>
                         `;
                         uiElements.rewardsList.appendChild(rewardDiv);
                     }
@@ -911,10 +875,10 @@
             uiElements.statsList.innerHTML = '';
             const filteredHabits = window.habits.filter(h => h.profile === currentProfile);
 
-            if (filteredHabits) {
+            if (filteredHabits.length > 0) {
                 filteredHabits.forEach(habit => {
-                    const totalDays = Math.floor((new Date() - new Date(habit.createdDate)) / (1000 * 60 * 60 * 24));
-                    const completionPercentage = totalDays > 0 ? ((habit.completedDays.length / totalDays) * 100).toFixed(0) : 0;
+                    const totalDays = Math.max(1, Math.floor((new Date() - new Date(habit.createdDate)) / (1000 * 60 * 60 * 24)));
+                    const completionPercentage = ((habit.completedDays.length / totalDays) * 100).toFixed(0);
                     
                     const statDiv = document.createElement('div');
                     statDiv.className = `p-4 rounded-xl bg-gray-100 shadow-md`;
@@ -936,12 +900,16 @@
             
             if (sender === 'bot') {
                 const voiceBtn = document.createElement('button');
-                voiceBtn.className = 'p-1 rounded-full bg-white text-green-600';
+                voiceBtn.className = 'p-1 rounded-full bg-white text-green-600 ml-auto flex-shrink-0';
                 voiceBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>`;
                 voiceBtn.onclick = () => speak(message);
-                chatMessage.appendChild(voiceBtn);
-                chatMessage.classList.add('flex-row-reverse', 'justify-between');
                 
+                const messageText = document.createElement('span');
+                messageText.textContent = message;
+                
+                chatMessage.innerHTML = '';
+                chatMessage.appendChild(messageText);
+                chatMessage.appendChild(voiceBtn);
             }
             uiElements.chatMessages.appendChild(chatMessage);
             uiElements.chatMessages.scrollTop = uiElements.chatMessages.scrollHeight;
@@ -949,19 +917,14 @@
 
         // --- Core Logic ---
         function checkMilestones(habit) {
-            let specialMessage = null;
-            let shareable = false;
-            
-            if (habit.streak === 7) {
-                specialMessage = `You've completed your '${habit.name}' habit for 7 days in a row! You are a person of action.`;
-                shareable = true;
-            } else if (habit.streak === 30) {
-                 specialMessage = `You hit a 30-day streak on your '${habit.name}' habit! You are now a truly disciplined person.`;
-                 shareable = true;
-            }
-
-            if (specialMessage) {
-                showMessage('Milestone Achieved!', specialMessage, shareable, habit.name, habit.streak);
+            const milestones = [7, 14, 30, 60, 90, 100, 365];
+            if (milestones.includes(habit.streak)) {
+                showMessage(
+                    'Milestone Achieved!', 
+                    `You've completed '${habit.name}' for ${habit.streak} days in a row! You're building an incredible discipline.`,
+                    { shareable: true, habit: habit }
+                );
+                confetti.blast();
             }
 
             if (habit.reward && habit.streak >= habit.reward.milestone && !habit.reward.achieved) {
@@ -970,25 +933,23 @@
         }
 
         function displayDailyReward() {
-            const rewardType = Math.random();
-            if (rewardType < 0.2) {
-                // Major reward (20% chance)
+            // FIX: Check if all habits for the day are complete
+            const today = new Date().toISOString().slice(0, 10);
+            const allHabitsToday = window.habits.filter(h => h.profile === currentProfile);
+            const allComplete = allHabitsToday.length > 0 && allHabitsToday.every(h => h.completedDays.includes(today));
+
+            if (allComplete && localStorage.getItem('dailyVictoryDisplayed') !== todayKey) {
                  confetti.blast();
                  const randomMessage = dailyVictoryMessages[Math.floor(Math.random() * dailyVictoryMessages.length)];
                  showMessage('Daily Victory!', randomMessage);
-            } else if (rewardType < 0.6) {
-                // Minor reward (40% chance)
-                showMessage('Good Job!', "That's one step closer to your goals. You've got this!");
-            } else {
-                // No extra reward (40% chance)
-                // Do nothing, the visual/auditory feedback is the reward
+                 localStorage.setItem('dailyVictoryDisplayed', todayKey); // FIX: Set the flag
             }
         }
 
         function celebrateReward(habit) {
-            const rewardTitle = 'Reward Achieved!';
-            const rewardText = `You've earned your reward: "${habit.reward.name}" for completing your '${habit.name}' habit! Enjoy your accomplishment.`;
-            showMessage(rewardTitle, rewardText, true, habit.name, habit.streak);
+            const rewardTitle = 'Reward Unlocked!';
+            const rewardText = `You've earned your reward: "${habit.reward.name}" for completing your '${habit.name}' habit for ${habit.reward.milestone} days! Enjoy your accomplishment.`;
+            showMessage(rewardTitle, rewardText, { shareable: true, habit: habit });
             habit.reward.achieved = true;
             window.updateHabit(habit);
             confetti.blast();
@@ -1001,51 +962,64 @@
             if (!updatedHabit.completedDays) { updatedHabit.completedDays = []; }
             const todayIndex = updatedHabit.completedDays.indexOf(today);
             
-            if (todayIndex > -1) {
+            if (todayIndex > -1) { // Un-checking the habit
                 updatedHabit.completedDays.splice(todayIndex, 1);
+                // Simple streak logic: if un-checking today, streak decreases by 1.
+                // More complex logic would be needed to handle un-checking past days.
                 updatedHabit.streak = Math.max(0, updatedHabit.streak - 1);
                 showMessage('Habit Un-checked', 'Progress reverted for today.');
-            } else {
+            } else { // Checking the habit
                 updatedHabit.completedDays.push(today);
                 updatedHabit.streak = (updatedHabit.streak || 0) + 1;
                 
-                // Trigger success animation and sound
                 uiElements.successAnimationModal.classList.add('visible');
                 setTimeout(() => uiElements.successAnimationModal.classList.remove('visible'), 1200);
-                new Audio('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3').play();
                 
-                if (localStorage.getItem('dailyVictoryDisplayed') !== todayKey) {
-                    displayDailyReward();
-                }
-
+                try {
+                    // NOTE: This external audio link could become unavailable. 
+                    // It's better to host your own assets in a real application.
+                    new Audio('https://cdn.pixabay.com/audio/2022/03/15/audio_2fd145a982.mp3').play();
+                } catch (e) { console.error("Could not play audio:", e); }
+                
+                displayDailyReward();
                 checkMilestones(updatedHabit);
             }
             window.updateHabit(updatedHabit);
         }
 
-        function addHabit(name) {
+        async function addHabit(name) {
             const newHabit = {
-                id: null,
+                id: null, // Will be set by addHabitToDB
                 name: name,
                 completedDays: [],
                 streak: 0,
                 createdDate: new Date().toISOString().slice(0, 10),
-                userId: getAuth().currentUser.uid,
+                userId: auth.currentUser.uid,
                 profile: currentProfile,
                 reward: null
             };
-            window.addHabitToDB(newHabit);
+            
+            const newId = await window.addHabitToDB(newHabit);
             uiElements.aiModal.classList.add('hidden');
             uiElements.habitInput.value = '';
             
-            setTimeout(() => {
-                showRewardModal(newHabit.id);
-            }, 1000);
+            if (newId) {
+                setTimeout(() => {
+                    showRewardModal(newId);
+                }, 500);
+            }
+        }
+        
+        // FIX: Implemented missing function
+        function getAISuggestion(habitName) {
+            const keywords = Object.keys(aiSuggestions);
+            const foundKeyword = keywords.find(k => habitName.toLowerCase().includes(k));
+            return aiSuggestions[foundKeyword] || aiSuggestions['default'];
         }
 
         function showAIRefinementModal(habitName) {
             uiElements.aiModal.classList.remove('hidden');
-            uiElements.aiPromptText.textContent = `Looks good! How about one of these as a starting point?`;
+            uiElements.aiPromptText.textContent = `Great! Let's make that more specific. How about one of these?`;
             uiElements.aiOptions.innerHTML = '';
             
             const suggestions = getAISuggestion(habitName);
@@ -1053,20 +1027,18 @@
                 const button = document.createElement('button');
                 button.textContent = suggestion;
                 button.className = 'w-full py-3 px-4 rounded-xl border border-gray-300 bg-gray-50 text-gray-800 text-center text-sm font-medium hover:bg-gray-100 transition-colors';
-                button.onclick = () => {
-                    addHabit(suggestion);
-                };
+                button.onclick = () => addHabit(suggestion);
                 uiElements.aiOptions.appendChild(button);
             });
-            uiElements.confirm-habit-button.onclick = () => {
-                 addHabit(habitName);
-            };
+
+            // FIX: Corrected syntax from confirm-habit-button to confirmHabitButton
+            uiElements.confirmHabitButton.onclick = () => addHabit(habitName);
         }
 
         function showRewardModal(habitId) {
             selectedHabitForReward = habitId;
-            const habit = window.habits.find(h => h.id === habitId);
             uiElements.rewardModal.classList.remove('hidden');
+            uiElements.rewardInput.value = '';
         }
         
         function shareHabit(habit) {
@@ -1088,10 +1060,7 @@
             const textarea = document.createElement('textarea');
             textarea.value = text;
             textarea.style.position = 'fixed';
-            textarea.style.top = 0;
-            textarea.style.left = 0;
-            textarea.style.width = '2em';
-            textarea.style.height = '2em';
+            textarea.style.opacity = '0';
             document.body.appendChild(textarea);
             textarea.focus();
             textarea.select();
@@ -1105,27 +1074,26 @@
             document.body.removeChild(textarea);
         }
 
-        function addChatMessage(message, sender) {
-            const chatMessage = document.createElement('div');
-            chatMessage.className = `chat-message p-3 rounded-xl max-w-[80%] ${sender === 'user' ? 'user' : 'bot'} flex items-center space-x-2`;
-            chatMessage.textContent = message;
-            
-            if (sender === 'bot') {
-                const voiceBtn = document.createElement('button');
-                voiceBtn.className = 'p-1 rounded-full bg-white text-green-600';
-                voiceBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>`;
-                voiceBtn.onclick = () => speak(message);
-                chatMessage.appendChild(voiceBtn);
-                chatMessage.classList.add('flex-row-reverse', 'justify-between');
-                
-            }
-            uiElements.chatMessages.appendChild(chatMessage);
-            uiElements.chatMessages.scrollTop = uiElements.chatMessages.scrollHeight;
-        }
-
-        function showMessage(title, text) {
+        // FIX: Updated showMessage to handle shareable content
+        function showMessage(title, text, options = {}) {
             uiElements.messageTitle.textContent = title;
             uiElements.messageText.textContent = text;
+            uiElements.messageActions.innerHTML = ''; // Clear previous actions
+
+            if (options.shareable && options.habit) {
+                const shareButton = document.createElement('button');
+                shareButton.textContent = 'Share Milestone';
+                shareButton.className = 'w-full py-4 px-6 rounded-xl bg-blue-500 text-white text-lg font-semibold hover:bg-blue-600 transition-colors mb-2';
+                shareButton.onclick = () => shareHabit(options.habit);
+                uiElements.messageActions.appendChild(shareButton);
+            }
+
+            const closeButton = document.createElement('button');
+            closeButton.textContent = 'Got it';
+            closeButton.className = 'w-full py-4 px-6 rounded-xl bg-green-600 text-white text-lg font-semibold hover:bg-green-700 transition-colors';
+            closeButton.onclick = () => uiElements.messageModal.classList.add('hidden');
+            uiElements.messageActions.appendChild(closeButton);
+
             uiElements.messageModal.classList.remove('hidden');
         }
 
@@ -1139,7 +1107,7 @@
                     return;
                 }
                 const timeStr = uiElements.notificationTime.value;
-                if (!timeStr) { return; }
+                if (!timeStr) return;
 
                 const [hours, minutes] = timeStr.split(':');
                 const now = new Date();
@@ -1155,10 +1123,10 @@
                 clearTimeout(window.notificationTimeout);
                 window.notificationTimeout = setTimeout(() => {
                     new Notification('Momentum Reminder', {
-                        body: 'Time to check off your habits for today!'
+                        body: 'Time to check off your habits for today!',
+                        icon: './favicon.ico' // Optional: Add an icon
                     });
                 }, timeout);
-
             });
         }
         
@@ -1169,23 +1137,25 @@
                 showAIRefinementModal(habitName);
             }
         });
+
+        uiElements.habitInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                uiElements.startButton.click();
+            }
+        });
         
         uiElements.addNewHabitButton.addEventListener('click', () => {
-            uiElements.initial.classList.remove('hidden');
-            uiElements.views.daily.classList.add('hidden');
+            Object.values(views).forEach(v => v.classList.add('hidden'));
+            views.initial.classList.remove('hidden');
             uiElements.habitInput.value = '';
-        });
-
-        uiElements.closeMessageButton.addEventListener('click', () => {
-            uiElements.messageModal.classList.add('hidden');
+            uiElements.habitInput.focus();
         });
 
         uiElements.addProfileBtn.addEventListener('click', () => {
             const profileName = uiElements.newProfileInput.value.trim();
-            if (profileName && !['Me', ...window.profiles.map(p => p.name)].includes(profileName)) {
+            if (profileName && !['Me', ...(window.profiles?.map(p => p.name) || [])].includes(profileName)) {
                 window.addProfileToDB(profileName);
                 uiElements.newProfileInput.value = '';
-                renderProfiles();
             }
         });
 
@@ -1202,15 +1172,20 @@
             }
         });
 
-        uiElements.chatSendBtn.addEventListener('click', async () => {
+        const sendChatMessage = async () => {
             const userMessage = uiElements.chatInput.value.trim();
             if (userMessage) {
                 addChatMessage(userMessage, 'user');
                 uiElements.chatInput.value = '';
-                addChatMessage("...", 'bot'); // Loading message
+                const loadingMessage = addChatMessage("...", 'bot');
                 const botResponse = await getCoachResponse(userMessage);
-                uiElements.chatMessages.lastElementChild.textContent = botResponse;
+                loadingMessage.querySelector('span').textContent = botResponse; // Update the message text
             }
+        };
+
+        uiElements.chatSendBtn.addEventListener('click', sendChatMessage);
+        uiElements.chatInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') sendChatMessage();
         });
 
         uiElements.notificationToggle.addEventListener('change', () => {
@@ -1222,18 +1197,25 @@
             }
         });
 
+        uiElements.notificationTime.addEventListener('change', () => {
+            if (uiElements.notificationToggle.checked) {
+                scheduleNotification(); // Reschedule if time changes
+            }
+        });
+
         uiElements.saveRewardButton.addEventListener('click', () => {
             if (selectedHabitForReward) {
-                const rewardName = uiElements.rewardInput.value;
+                const rewardName = uiElements.rewardInput.value.trim();
                 const milestone = parseInt(uiElements.milestoneSelect.value, 10);
+                
+                if (!rewardName) {
+                    showMessage("Oops!", "Please enter a reward name.");
+                    return;
+                }
                 
                 const habitToUpdate = window.habits.find(h => h.id === selectedHabitForReward);
                 if (habitToUpdate) {
-                    habitToUpdate.reward = {
-                        name: rewardName,
-                        milestone: milestone,
-                        achieved: false
-                    };
+                    habitToUpdate.reward = { name: rewardName, milestone: milestone, achieved: false };
                     window.updateHabit(habitToUpdate);
                     uiElements.rewardModal.classList.add('hidden');
                 }
@@ -1268,42 +1250,24 @@
             renderCalendar();
         });
         
-        // Onboarding listeners
         uiElements.onboardingNextBtn.addEventListener('click', nextOnboardingStep);
         uiElements.onboardingInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                nextOnboardingStep();
-            }
+            if (e.key === 'Enter') nextOnboardingStep();
         });
 
         // --- Initialization ---
-        window.renderApp = () => {
-            if (window.personalData && !window.personalData.onboarded) {
-                showOnboardingModal();
-            } else {
-                 uiElements.appContainer.classList.remove('hidden');
-                 if (window.habits && window.habits.length > 0) {
-                     uiElements.initial.classList.add('hidden');
-                     switchView(currentView);
-                 } else {
-                     uiElements.initial.classList.remove('hidden');
-                 }
-                 renderProfiles();
-            }
-        };
-
         window.onload = () => {
             initApp();
             setupSpeechRecognition();
             if (synth) {
+                // Voices may load asynchronously
                 populateVoiceList();
                 if (synth.onvoiceschanged !== undefined) {
                     synth.onvoiceschanged = populateVoiceList;
                 }
             }
             // Set default palette on load
-            const defaultPalette = 'forest';
-            const colors = colorPalettes[defaultPalette];
+            const colors = colorPalettes['forest'];
             for (const [key, value] of Object.entries(colors)) {
                 document.documentElement.style.setProperty(key, value);
             }
@@ -1311,4 +1275,3 @@
     </script>
 </body>
 </html>
-
